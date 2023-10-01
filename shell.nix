@@ -5,6 +5,7 @@ pkgs.mkShell {
     pkgs.hello
     pkgs.poetry
     pkgs.python311
+    pkgs.just
 
     # These are necessary to get pytorch and transformers to work properly
     pkgs.rustup
