@@ -1,0 +1,9 @@
+
+@_default:
+    just --list
+
+install:
+    poetry install
+
+run:
+    poetry run huggingtest
