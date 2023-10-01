@@ -1,0 +1,3 @@
+
+setup:
+    rustup default stable
