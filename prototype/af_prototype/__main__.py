@@ -21,7 +21,7 @@ def cli():
 @click.argument("input_file", type=Path)
 @click.option("-v", "--verbose", count=True)
 def summarize(input_file: Path, verbose: int):
-    """Create an aphasia-friendly summary for an abstract at the given path."""
+    """Create an aphasia-friendly summary of an academic paper abstract."""
     setup_logging(verbose)
 
     # Check if is pdf file
@@ -64,6 +64,7 @@ def summarize(input_file: Path, verbose: int):
 @click.option("--output", type=Path)
 @click.option("-v", "--verbose", count=True)
 def extract_sections(pdf_file: Path, output: Path | None, verbose: int):
+    """Attempt to extract sections from a PDF file."""
     setup_logging(verbose)
 
     if not output:
