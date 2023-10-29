@@ -12,6 +12,7 @@ packages = [
 python = "^3.11"
 transformers = "^4.33.3"
 torch = "^2.0.1"
+flask = "^3.0.0"
 
 
 [build-system]

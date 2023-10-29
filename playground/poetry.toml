@@ -4,4 +4,4 @@ in-project = true
 
 [installer]
 # Tokenizers has to install from source on M1 macs
-no-binary = ["tokenizers", "safetensors"]
+no-binary = ["safetensors"]
