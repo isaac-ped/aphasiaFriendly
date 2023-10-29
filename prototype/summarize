@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+if ! [[ -d .venv ]]; then
+    poetry install
+fi
+poetry run summarize "$@"
