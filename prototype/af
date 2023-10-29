@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 poetry install --sync -q
-poetry run summarize "$@"
+poetry run af "$@"
