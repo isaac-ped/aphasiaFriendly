@@ -20,20 +20,35 @@ def cli():
 @cli.command()
 @click.argument("input_file", type=Path)
 @click.option("-v", "--verbose", count=True)
-def summarize(input_file: Path, verbose: int):
+def summarize(input_file: Path, output: Path, verbose: int):
     """Create an aphasia-friendly summary for an abstract at the given path."""
     setup_logging(verbose)
 
-    logger.info(f"Loading abstract from {input_file}")
-    abstract_contents = input_file.read_text().strip()
+    # Check if is pdf file
+    if input_file.suffix == ".pdf":
+        logger.info(f"Extracting abstract from {input_file}")
+        abstract_contents = extract_abstract(input_file, None)
+    else:
+        logger.info(f"Loading abstract from {input_file}")
+        abstract_contents = input_file.read_text().strip()
+
+    messages = prompts.asdict(prompts.ABSTRACT_EXTRACTION)
+    messages.append({"role": "user", "content": abstract_contents})
+    response = api_access.completion(messages)
+    logger.info("Generated a summary from the provided abstract:")
+    print(response["choices"][0]["message"]["content"])
+
+    abstract_contents = response["choices"][0]["message"]["content"]
+    logger.info(f"Extracted the following abstract: {abstract_contents}")
 
     logger.info("Generating summary")
     messages = prompts.asdict(prompts.SUMMARY_MESSAGES)
     messages.append({"role": "user", "content": abstract_contents})
 
     response = api_access.completion(messages)
-    logger.info("Generated a summary from the provided abstract:")
-    print(response["choices"][0]["message"]["content"])
+    logger.info(
+        f"Generated the following summary:\n {response['choices'][0]['message']['content']}"
+    )
 
     messages = prompts.asdict(prompts.SUMMARY_MESSAGES)
     messages.append(response["choices"][0]["message"])
@@ -42,6 +57,20 @@ def summarize(input_file: Path, verbose: int):
 
     logger.info("Generated a list of keywords for icons:")
     print(response["choices"][0]["message"]["content"])
+
+
+@cli.command()
+@click.argument("pdf_file", type=Path)
+@click.option("--output", type=Path)
+@click.option("-v", "--verbose", count=True)
+def extract_sections(pdf_file: Path, output: Path | None, verbose: int):
+    setup_logging(verbose)
+
+    if not output:
+        # Remove the .pdf extension
+        output = pdf_file.with_suffix("")
+
+    extract_abstract(pdf_file, output)
 
 
 if __name__ == "__main__":
