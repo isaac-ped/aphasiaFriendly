@@ -35,8 +35,6 @@ def summarize(input_file: Path, verbose: int):
     messages = prompts.asdict(prompts.ABSTRACT_EXTRACTION)
     messages.append({"role": "user", "content": abstract_contents})
     response = api_access.completion(messages)
-    logger.info("Generated a summary from the provided abstract:")
-    print(response["choices"][0]["message"]["content"])
 
     abstract_contents = response["choices"][0]["message"]["content"]
     logger.info(f"Extracted abstract from provided input:")
