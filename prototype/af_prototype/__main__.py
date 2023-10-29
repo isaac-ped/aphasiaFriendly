@@ -1,62 +1,48 @@
 import dataclasses
-import json
-import openai
-import logging
-import click
-from . import api_access
 from pathlib import Path
-from . import prompts
-from . import config
-from .logger import setup_logging
 
+import click
+import openai
+
+from . import api_access, config, prompts
+from .fuzzy_finding import extract_abstract
+from .logger import logger, setup_logging
 
 openai.organization = config.ORGANIZATION_ID
 openai.api_key = config.get_api_key()
 
 
-@click.command()
-@click.argument("abstract_file", type=Path)
-@click.option("--output", type=Path, default="summary.json")
+@click.group()
+def cli():
+    pass
+
+
+@cli.command()
+@click.argument("input_file", type=Path)
 @click.option("-v", "--verbose", count=True)
-def summarize(abstract_file: Path, output: Path, verbose: int):
+def summarize(input_file: Path, verbose: int):
     """Create an aphasia-friendly summary for an abstract at the given path."""
     setup_logging(verbose)
-    messages = [dataclasses.asdict(message) for message in prompts.SUMMARY_MESSAGES]
 
-    logging.info(f"Loading abstract from {abstract_file}")
+    logger.info(f"Loading abstract from {input_file}")
+    abstract_contents = input_file.read_text().strip()
 
-    messages.append({"role": "user", "content": abstract_file.read_text().strip()})
+    logger.info("Generating summary")
+    messages = prompts.asdict(prompts.SUMMARY_MESSAGES)
+    messages.append({"role": "user", "content": abstract_contents})
 
-    logging.debug(
-        "Sending the following prompt: \n"
-        + "\n"
-        + json.dumps(messages, indent=2)
-        + "\n"
-    )
-
-    logging.info("Sending to OpenAI completion model")
     response = api_access.completion(messages)
+    logger.info("Generated a summary from the provided abstract:")
+    print(response["choices"][0]["message"]["content"])
 
-    with output.open("w") as f:
-        json.dump(response, f, indent=2)
-
-    logging.info(
-        "Generated the following output for summary:\n"
-        + response["choices"][0]["message"]["content"]
-    )
-
+    messages = prompts.asdict(prompts.SUMMARY_MESSAGES)
     messages.append(response["choices"][0]["message"])
     messages.extend([dataclasses.asdict(message) for message in prompts.ICON_MESSAGES])
-
-    logging.debug(
-        "Sending the following prompt: \n" + "\n" + json.dumps(messages, indent=2)
-    )
     response = api_access.completion(messages)
 
-    logging.info(
-        "Generated the following output for icons:\n"
-        + response["choices"][0]["message"]["content"]
-    )
+    logger.info("Generated a list of keywords for icons:")
+    print(response["choices"][0]["message"]["content"])
 
 
-summarize()
+if __name__ == "__main__":
+    cli()

@@ -3,9 +3,11 @@ so we can play around with subsequent stepes assuming the pipeline remains
 the same up until that point"""
 
 import json
-import logging
 from pathlib import Path
+
 import openai
+
+from .logger import logger
 
 CACHE_DIR = Path(__file__).parent.parent / ".cache"
 
@@ -29,16 +31,16 @@ def localcache(fn):
         cache_file = fn_cache / str(h)
         cache_info = cache_file.with_suffix(".json")
 
-        if cache_info.exists():
-            logging.debug(f"Cache file exists: {cache_info}")
+        if cache_file.exists() and cache_info.exists():
+            logger.debug(f"Cache info exists: {cache_info}")
             with cache_info.open() as f:
                 info = _make_hashable(json.load(f))
                 if info == to_hash:
-                    logging.debug("Info matches")
+                    logger.debug("Info matches")
                     return cache_file, True
-                logging.warning("Something weird happened. Cache info doesn't match.")
-                logging.warning("Expected: %s", to_hash)
-                logging.warning("Got: %s", info)
+                logger.warning("Something weird happened. Cache info doesn't match.")
+                logger.warning("Expected: %s", to_hash)
+                logger.warning("Got: %s", info)
 
         with cache_info.open("w") as f:
             json.dump(to_hash, f)
@@ -46,8 +48,8 @@ def localcache(fn):
 
     def wrapper(*args, **kwargs):
         c_f, is_cached = cache_file(*args, **kwargs)
-        logging.debug(f"Cache file: {c_f}")
-        logging.debug(f"Cache exists? {is_cached}")
+        logger.debug(f"Cache file: {c_f}")
+        logger.debug(f"Cache exists? {is_cached}")
         if is_cached:
             with c_f.open() as f:
                 return json.load(f)
@@ -62,4 +64,10 @@ def localcache(fn):
 
 @localcache
 def completion(messages: list[dict], model="gpt-3.5-turbo") -> dict:
+    logger.debug(
+        "Sending the following prompt: \n"
+        + "\n"
+        + json.dumps(messages, indent=2)
+        + "\n"
+    )
     return openai.ChatCompletion.create(model=model, messages=messages)
