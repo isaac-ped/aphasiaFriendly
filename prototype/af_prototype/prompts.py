@@ -24,3 +24,10 @@ SUMMARY_MESSAGES = [
         "Summaryize the abstract from the following article, producing 5 bullet points"
     ),
 ]
+
+ICON_MESSAGES = [
+    Message(
+        "For each bullet point you generated above, give one to two keywords that would allow you to search "
+        "for an appropriate icon that would demonstrate the concepts represented in the bullet point"
+    )
+]
