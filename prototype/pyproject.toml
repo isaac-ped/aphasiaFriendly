@@ -22,5 +22,4 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.poetry.scripts]
-summarize = "af_prototype.__main__:summarize"
-extract = "af_prototype.__main__:extract_sections"
+af = "af_prototype.__main__:cli"
