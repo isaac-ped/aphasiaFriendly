@@ -29,7 +29,7 @@ ABSTRACT_EXTRACTION = [
         "You should never respond with an answer other the specified text to be extracted",
         role="system",
     ),
-    Message("Extrac the abstract from the text in the following message"),
+    Message("Extract the abstract from the text in the following message"),
 ]
 
 
