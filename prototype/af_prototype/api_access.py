@@ -3,6 +3,8 @@ so we can play around with subsequent stepes assuming the pipeline remains
 the same up until that point"""
 
 import json
+import pickle
+import config
 from pathlib import Path
 
 import openai
@@ -19,15 +21,18 @@ def _make_hashable(x):
         return tuple((_make_hashable(k), _make_hashable(v)) for k, v in x.items())
     return x
 
-
 def localcache(fn):
+    """A decorator to cache the results of a function call locally.
+    
+    Results are cached in the file .cache/fn_name/hash_of_args_and_kwargs.
+    """
     def cache_file(*args, **kwargs) -> tuple[Path, bool]:
         fn_cache = CACHE_DIR / fn.__name__
         if not fn_cache.exists():
             fn_cache.mkdir(parents=True, exist_ok=True)
 
         to_hash = _make_hashable((args, kwargs))
-        h = hash(to_hash)
+        h = abs(hash(to_hash))
         cache_file = fn_cache / str(h)
         cache_info = cache_file.with_suffix(".json")
 
@@ -51,19 +56,26 @@ def localcache(fn):
         logger.debug(f"Cache file: {c_f}")
         logger.debug(f"Cache exists? {is_cached}")
         if is_cached:
-            with c_f.open() as f:
-                return json.load(f)
-        else:
-            result = fn(*args, **kwargs)
-            with c_f.open("w") as f:
-                json.dump(result, f)
-            return result
+            with c_f.open("rb") as f:
+                try:
+                    return pickle.load(f)
+                except Exception as e:
+                    logger.warning(
+                        f"Error loading cache file {c_f}. Continuing without it: {e}"
+                    )
+        result = fn(*args, **kwargs)
+        with c_f.open("wb") as f:
+            pickle.dump(result, f)
+        return result
 
     return wrapper
 
 
 @localcache
 def completion(messages: list[dict], model="gpt-3.5-turbo") -> dict:
+
+    openai.organization = config.ORGANIZATION_ID
+    openai.api_key = config.openai_api_key()
     logger.debug(
         "Sending the following prompt: \n"
         + "\n"
