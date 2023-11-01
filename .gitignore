@@ -1,4 +1,6 @@
 *~
-
+.DS_Store
+.*secret
+.*key
 .venv
 __pycache__
