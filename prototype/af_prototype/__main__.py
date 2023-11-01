@@ -88,7 +88,11 @@ def extract_sections(pdf_file: Path, output: Path | None, verbose: int):
 @click.option("--invert/--no-invert", help="Invert the icon colors")
 @click.option("-v", "--verbose", count=True, default=1)
 def search_nounproject(search_term: str, n: int, verbose: int, invert: bool):
-    """Search for icons in nounproject based on keyword. Display in terminal."""
+    """Search for icons in nounproject based on keyword. Display in terminal.
+    
+    NOTE: This won't work unless you're using iterm2 and are in the nix environment
+    that has imgcat installed.
+    """
     setup_logging(verbose)
     ids = search_icons(search_term)
     for id in ids[:n]:
