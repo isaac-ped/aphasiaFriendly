@@ -4,11 +4,11 @@ the same up until that point"""
 
 import json
 import pickle
-import config
 from pathlib import Path
 
 import openai
 
+from . import config
 from .logger import logger
 
 CACHE_DIR = Path(__file__).parent.parent / ".cache"
@@ -23,7 +23,7 @@ def _make_hashable(x):
 
 def localcache(fn):
     """A decorator to cache the results of a function call locally.
-    
+
     Results are cached in the file .cache/fn_name/hash_of_args_and_kwargs.
     """
     def cache_file(*args, **kwargs) -> tuple[Path, bool]:
