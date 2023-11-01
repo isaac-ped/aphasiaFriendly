@@ -20,8 +20,9 @@ def cli():
 
 @cli.command()
 @click.argument("input_file", type=Path)
+@click.option("--images", "--no-images", default=True, help="If you are not in iterm2, provide --no-images to suppress the in-terminal display of images from nounproject")
 @click.option("-v", "--verbose", count=True)
-def summarize(input_file: Path, verbose: int):
+def summarize(input_file: Path, verbose: int, images: bool):
     """Create an aphasia-friendly summary of an academic paper abstract."""
     setup_logging(verbose)
 
@@ -64,7 +65,10 @@ def summarize(input_file: Path, verbose: int):
             icon_ids = search_icons(keyword)
             if len(icon_ids) > 0:
                 url = get_icon_url(icon_ids[0])
-                display_svg_icon(url, True)
+                if images:
+                    display_svg_icon(url, True)
+                else:
+                    print(f"Image urk: {url}")
 
 
 @cli.command()
