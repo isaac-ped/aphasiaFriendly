@@ -20,7 +20,7 @@ def cli():
 
 @cli.command()
 @click.argument("input_file", type=Path)
-@click.option("--images", "--no-images", default=True, help="If you are not in iterm2, provide --no-images to suppress the in-terminal display of images from nounproject")
+@click.option("--images/--no-images", default=True, help="If you are not in iterm2, provide --no-images to suppress the in-terminal display of images from nounproject")
 @click.option("-v", "--verbose", count=True)
 def summarize(input_file: Path, verbose: int, images: bool):
     """Create an aphasia-friendly summary of an academic paper abstract."""
