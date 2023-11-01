@@ -8,9 +8,6 @@ from . import api_access, config, prompts
 from .fuzzy_finding import extract_abstract
 from .logger import logger, setup_logging
 
-openai.organization = config.ORGANIZATION_ID
-openai.api_key = config.get_api_key()
-
 
 @click.group()
 def cli():
