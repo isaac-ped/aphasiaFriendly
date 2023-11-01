@@ -33,10 +33,12 @@ def setup_logging(level: int):
     ch.setFormatter(CustomFormatter())
 
     # Set up logger' with level based on the passed in value
-    if level > 0:
-        logger.setLevel(logging.DEBUG)
-    else:
+    if level == 0:
+        logger.setLevel(logging.WARNING)
+    elif level == 1:
         logger.setLevel(logging.INFO)
+    else:
+        logger.setLevel(logging.DEBUG)
     logger.addHandler(ch)
 
     # if level == 0:
