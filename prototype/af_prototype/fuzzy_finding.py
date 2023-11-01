@@ -62,8 +62,8 @@ def extract_abstract(pdf_file: Path, output: Path | None = None) -> str:
     section_order = [heading]
     sections = defaultdict(str)
 
-    # We attempt to find headings for sections by looking for a word on its own line.
-
+    # First heading defaults to "NONE"
+    # This section is where anything before an auto-detected section will show up
     heading = "NONE"
     section_order = [heading]
     sections = defaultdict(str)
