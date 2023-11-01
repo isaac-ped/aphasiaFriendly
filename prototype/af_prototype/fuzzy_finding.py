@@ -27,6 +27,8 @@ def section_heading(text: str) -> str | None:
     # like: "A B S T R A C T"
     # Substitute all spaces that are between two letters with a single space
     space_re = r"((?<=\s\w)|(?<=^\w))(\s)(?=\w(\s|$))"
+    # ^^ This regex is nasty.
+    # You can see it in detail here: https://www.regexr.com/7mhgh
     first_line = re.sub(space_re, "", first_line)
     if len(first_line) < 5:
         # I don't know of any important headings with lengths less than this.
