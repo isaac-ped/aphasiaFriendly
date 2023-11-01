@@ -1,10 +1,12 @@
-"""API to search for icons in nounproject"""
-from .api_access import localcache
-import requests
+"""Use the nounproject API to search for and retrieve icons"""
 import json
-from requests_oauthlib import OAuth1
-from .config import nounproject_api_key, nounproject_secret
 import subprocess
+
+import requests
+from requests_oauthlib import OAuth1
+
+from .api_access import localcache
+from .config import nounproject_api_key, nounproject_secret
 
 
 @localcache
@@ -81,9 +83,3 @@ def display_svg_icon(url: str, invert: bool):
     out, _ = conversion.communicate(icon)
     subprocess.Popen(["imgcat"], stdin=subprocess.PIPE).communicate(out)
 
-
-if __name__ == "__main__":
-    ids = search_icons("smiling")
-    for id in ids:
-        url = get_icon_url(id)
-        display_svg_icon(url)
