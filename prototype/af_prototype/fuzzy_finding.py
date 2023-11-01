@@ -36,7 +36,7 @@ def section_heading(text: str) -> str | None:
 
     # See if the line contains only "<number>. <1-3 words>"
     # in which Words must start with a capital letter, but then may be any case.
-    regex = r"^(?:\d+\.)\s*([A-Z][a-zA-Z]+\s){1,3}$"
+    regex = r"^(?:\d+\.)\s*([A-Z][a-zA-Z]+\s?){1,3}$"
     match = re.match(regex, first_line)
     if match and len(first_line) > 3:
         # Remove the 'number.' from the front if it is there
