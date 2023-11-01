@@ -9,9 +9,6 @@ from .fuzzy_finding import extract_abstract
 from .logger import logger, setup_logging
 from .nounproject import display_svg_icon, get_icon_url, search_icons
 
-openai.organization = config.ORGANIZATION_ID
-openai.api_key = config.get_api_key()
-
 
 @click.group()
 def cli():
