@@ -3,4 +3,5 @@
 .*secret
 .*key
 .venv
+.cache
 __pycache__
