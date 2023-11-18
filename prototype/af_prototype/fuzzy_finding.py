@@ -47,7 +47,7 @@ def section_heading(text: str) -> str | None:
         if section in first_line.lower():
             return section
 
-def extract_abstract(pdf_file: Path, output: Path | None = None) -> str:
+def extract_sections(pdf_file: Path, output: Path | None = None) -> dict[str,str]:
     """Try to find the abstract in a PDF file.
 
     :param pdf_file: Path to the pdf to scan
@@ -65,13 +65,11 @@ def extract_abstract(pdf_file: Path, output: Path | None = None) -> str:
     # First heading defaults to "NONE"
     # This section is where anything before an auto-detected section will show up
     heading = "NONE"
-    section_order = [heading]
     sections = defaultdict(str)
     for section in text.split("\n\n"):
         possible_heading = section_heading(section)
         if possible_heading:
             heading = possible_heading
-            section_order.append(heading)
         sections[heading] += "\n" + section + "\n\n"
 
     # If "output" is provided, write each section to a file in that folder
@@ -83,6 +81,11 @@ def extract_abstract(pdf_file: Path, output: Path | None = None) -> str:
             with out_file.open("w") as f:
                 f.write(contents)
 
+    return sections
+
+def extract_abstract(pdf_file: Path, output: Path | None = None) -> str:
+    sections = extract_sections(pdf_file, output)
+    section_order =  list(sections.keys())
     if "abstract" in sections:
         # If we find the abstract explicitly in a section, we start that point in the file
         abstract_ind = section_order.index("abstract")
@@ -96,3 +99,9 @@ def extract_abstract(pdf_file: Path, output: Path | None = None) -> str:
         sections[section] for section in section_order[abstract_ind : abstract_ind + 2]
     )
     return guessed_text
+
+
+def extract_metadata(pdf_file: Path, output: Path | None = None) -> str:
+    sections = extract_sections(pdf_file, output)
+    section_order =  list(sections.keys())
+    return sections[section_order[0]]

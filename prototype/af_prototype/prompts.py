@@ -32,17 +32,38 @@ ABSTRACT_EXTRACTION = [
     Message("Extract the abstract from the text in the following message"),
 ]
 
+TITLE_AND_AUTHOR_ABSTRACTION = [
+    Message(
+        "You are an assistant that handles the extraction of text from scientific articles. "
+        "You will be provided with text that has been extracte from a scientific PDF and asked for a specific section "
+        "of that text. The text may be extracted cleanly, in which case you may just be able to return the text "
+        "in the same format that it was given to you. "
+        "However, you may be given the text alongside some other information or metadata that was added in a "
+        "messy extraction process. In that case, try to return only the part of the text that represents the section "
+        "that was requested. "
+        "You should never respond with an answer other the specified text to be extracted",
+        role="system",
+    ),
+    Message("Extract the title, authors, and publication date of the article from the text in the following message. "
+            "The tile should be on the first line of the response, all authors on the second line, and the date on the third line. "
+            "If multiple dates are available, you should choose the latest date and output only that. "
+            "If there are multiple authors, only output the first author and then 'et al.'"),
+]
+
 
 SUMMARY_MESSAGES = [
     Message(
-        """
-        You are an assistant that processes scientific articles into a few simple sentences
-        that are understandable by someone with a first grade reading level
-        """,
+        "You are an assistant that processes scientific articles into a few simple sentences "
+        "that are understandable by someone that has difficulty reading. "
+        "You will be passed the abstract of a scientific article and asked to summarize it. "
+        "Your summary should always produce 5 bullet points, each of which use very simple syntax "
+        "and vocabulary. "
+        "In particular, the words that you use should be as simple and common as possible, "
+        "and the sentences that you produce should have a flesch-kincaid score of less than 65.",
         role="system",
     ),
     Message(
-        "Summaryize the abstract from the following article, producing 5 bullet points"
+        "Summarize the abstract from the following article"
     ),
 ]
 

@@ -72,7 +72,7 @@ def localcache(fn):
 
 
 @localcache
-def completion(messages: list[dict], model="gpt-3.5-turbo") -> dict:
+def completion(messages: list[dict], model="gpt-4") -> dict:
 
     openai.organization = config.ORGANIZATION_ID
     openai.api_key = config.openai_api_key()
