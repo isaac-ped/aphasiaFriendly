@@ -1,5 +1,10 @@
 {
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "files.exclude": {
+    ".trash": true,
+    "**/.cache": true,
+    "**/.venv": true
   }
 }
