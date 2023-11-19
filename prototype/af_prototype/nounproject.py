@@ -6,17 +6,17 @@ import requests
 from requests_oauthlib import OAuth1
 
 from .api_access import localcache
-from .config import nounproject_api_key, nounproject_secret
+from .config import Config
 
 
 @localcache
 def search_icons(query: str) -> list[int]:
     """Search for icons on nounproject.
-    
+
     :param query: A term to search for in nounproject
     :returns: A list of IDs for icons that match the query
     """
-    auth = OAuth1(nounproject_api_key(), nounproject_secret())
+    auth = OAuth1(Config.nounproject_api_key, Config.nounproject_secret)
     endpoint = "https://api.thenounproject.com/v2/icon"
 
     response = requests.get(endpoint, auth=auth, params={"query": query})
@@ -29,11 +29,11 @@ def search_icons(query: str) -> list[int]:
 @localcache
 def get_icon_url(icon_id: int) -> str:
     """Given an icon ID, get the URL for the icon
-    
+
     :param icon_id: An ID for a nounproject icon (returned from search_icons)
     :returns: The URL for the provided icon
     """
-    auth = OAuth1(nounproject_api_key(), nounproject_secret())
+    auth = OAuth1(Config.nounproject_api_key, Config.nounproject_secret)
     endpoint = f"https://api.thenounproject.com/v2/icon/{icon_id}"
 
     response = requests.get(endpoint, auth=auth)
@@ -42,7 +42,7 @@ def get_icon_url(icon_id: int) -> str:
 
 
 @localcache
-def get_icon(icon_url: int) -> bytes:
+def get_icon(icon_url: str) -> bytes:
     """Given an icon URL, get the icon itself"""
     return requests.get(icon_url).content
 
@@ -82,4 +82,3 @@ def display_svg_icon(url: str, invert: bool):
     )
     out, _ = conversion.communicate(icon)
     subprocess.Popen(["imgcat"], stdin=subprocess.PIPE).communicate(out)
-

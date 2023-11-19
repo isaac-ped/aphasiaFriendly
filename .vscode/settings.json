@@ -4,7 +4,11 @@
   },
   "files.exclude": {
     ".trash": true,
+    "**/__pycache__": true,
     "**/.cache": true,
     "**/.venv": true
-  }
+  },
+  "python.languageServer": "Pylance",
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.diagnosticMode": "workspace"
 }

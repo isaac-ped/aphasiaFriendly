@@ -18,7 +18,11 @@ def cli():
 
 @cli.command()
 @click.argument("input_file", type=Path)
-@click.option("--images/--no-images", default=True, help="If you are not in iterm2, provide --no-images to suppress the in-terminal display of images from nounproject")
+@click.option(
+    "--images/--no-images",
+    default=True,
+    help="If you are not in iterm2, provide --no-images to suppress the in-terminal display of images from nounproject",
+)
 @click.option("--out", type=Path, help="output directory", default=None)
 @click.option("-v", "--verbose", count=True)
 def summarize(input_file: Path, verbose: int, images: bool, out: Path | None = None):
@@ -33,21 +37,25 @@ def summarize(input_file: Path, verbose: int, images: bool, out: Path | None = N
     else:
         logger.info(f"Loading abstract from {input_file}")
         abstract_contents = input_file.read_text().strip()
+        metadata_contents = None
 
     messages = prompts.asdict(prompts.ABSTRACT_EXTRACTION)
     messages.append({"role": "user", "content": abstract_contents})
-    response = api_access.completion(messages, model='gpt-4')
+    response = api_access.completion(messages, model="gpt-4")
 
     abstract_contents = response["choices"][0]["message"]["content"]
     logger.info(f"Extracted abstract from provided input:\n{abstract_contents}")
 
-    messages = prompts.asdict(prompts.TITLE_AND_AUTHOR_ABSTRACTION)
-    messages.append({"role": "user", "content": metadata_contents})
-    response = api_access.completion(messages, model='gpt-4')
-    metadata_contents = response["choices"][0]["message"]["content"]
-    logger.info(f"Extracted metadata from provided input:\n{metadata_contents}")
-    metadata_contents = metadata_contents.strip()
-    title, authors, date = metadata_contents.split("\n")
+    if metadata_contents is not None:
+        messages = prompts.asdict(prompts.TITLE_AND_AUTHOR_ABSTRACTION)
+        messages.append({"role": "user", "content": metadata_contents})
+        response = api_access.completion(messages, model="gpt-4")
+        metadata_contents = response["choices"][0]["message"]["content"]
+        logger.info(f"Extracted metadata from provided input:\n{metadata_contents}")
+        metadata_contents = metadata_contents.strip()
+        title, authors, date = metadata_contents.split("\n")
+    else:
+        title, authors, date = "", "", ""
 
     logger.info("Generating summary")
     messages = prompts.asdict(prompts.SUMMARY_MESSAGES)
@@ -65,7 +73,6 @@ def summarize(input_file: Path, verbose: int, images: bool, out: Path | None = N
     keyword_lines = response["choices"][0]["message"]["content"]
     logger.info(f"Generated a list of keywords for icons:\n{keyword_lines}")
 
-
     if out is None:
         out = Path("./output") / input_file.stem
     out.mkdir(exist_ok=True, parents=True)
@@ -74,7 +81,9 @@ def summarize(input_file: Path, verbose: int, images: bool, out: Path | None = N
         f.write(f"% {title}\n")
         f.write(f"% {authors}\n")
         f.write(f"% {date}\n")
-        for keyword_line, summary_line in zip(keyword_lines.split("\n"), summary.split("\n")):
+        for keyword_line, summary_line in zip(
+            keyword_lines.split("\n"), summary.split("\n")
+        ):
             print(f"**********\n{summary_line}")
             print(f"Keywords: {keyword_line}")
             f.write(f"\n\n###  {summary_line.strip('- ')}\n")
@@ -84,11 +93,11 @@ def summarize(input_file: Path, verbose: int, images: bool, out: Path | None = N
                 icon_ids = search_icons(keyword)
                 if len(icon_ids) > 0:
                     url = get_icon_url(icon_ids[0])
-                    with ( out / f"{keyword}.png").open('wb') as fi:
+                    with (out / f"{keyword}.png").open("wb") as fi:
                         fi.write(get_icon(url))
                     f.write('\n\n::: {.column width="40%"}')
                     f.write(f"\n![{keyword}](./{keyword}.png)\n")
-                    f.write('\n:::')
+                    f.write("\n:::")
 
                     if images:
                         display_svg_icon(url, True)
@@ -97,8 +106,7 @@ def summarize(input_file: Path, verbose: int, images: bool, out: Path | None = N
             f.write("\n::::::::::::::")
 
     subprocess.check_call(
-        ["pandoc", "-t", "pptx", "-s", "summary.md", "-o", "summary.pptx"],
-        cwd=str(out)
+        ["pandoc", "-t", "pptx", "-s", "summary.md", "-o", "summary.pptx"], cwd=str(out)
     )
     subprocess.check_call(
         ["open", (out / "summary.pptx")],
@@ -127,7 +135,7 @@ def extract_sections(pdf_file: Path, output: Path | None, verbose: int):
 @click.option("-v", "--verbose", count=True, default=1)
 def search_nounproject(search_term: str, n: int, verbose: int, invert: bool):
     """Search for icons in nounproject based on keyword. Display in terminal.
-    
+
     NOTE: This won't work unless you're using iterm2 and are in the nix environment
     that has imgcat installed.
     """

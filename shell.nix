@@ -7,14 +7,18 @@ in
 pkgs.mkShell {
   buildInputs = [
     imgcat
+
+    pkgs.python312Full
     pkgs.poetry
-    pkgs.python311
     # A command runner that I like
     # https://github.com/casey/just
     pkgs.just
 
     # For svg -> png conversion
     pkgs.imagemagick
+
+    pkgs.pandoc
+    pkgs.texlive.combined.scheme-small
 
     # keep this line if you use bash
     pkgs.bashInteractive

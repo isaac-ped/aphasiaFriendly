@@ -11,14 +11,14 @@ class CustomFormatter(logging.Formatter):
     reset = "\x1b[0m"
     lightgreen = "\033[1;32m"
     lightcyan = "\033[1;36m"
-    format = "%(levelname)s - %(message)s"
+    format_ = "%(levelname)s - %(message)s"
 
     FORMATS = {
-        logging.DEBUG: lightcyan + format + reset,
-        logging.INFO: lightgreen + format + reset,
-        logging.WARNING: yellow + format + reset,
-        logging.ERROR: red + format + reset,
-        logging.CRITICAL: bold_red + format + reset,
+        logging.DEBUG: lightcyan + format_ + reset,
+        logging.INFO: lightgreen + format_ + reset,
+        logging.WARNING: yellow + format_ + reset,
+        logging.ERROR: red + format_ + reset,
+        logging.CRITICAL: bold_red + format_ + reset,
     }
 
     def format(self, record):
