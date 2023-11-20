@@ -4,8 +4,10 @@ from readable_af.model.summary import Summary
 
 
 def generate(summary: Summary, out: Path) -> Path:
-    out.mkdir(exist_ok=True, parents=True)
+    out.parent.mkdir(exist_ok=True, parents=True)
     md_file = out.parent / "summary.md"
+
+    used_icons = set()
     with md_file.open("w") as f:
         f.write(f"% {summary.metadata.title}\n")
         f.write(f"% {', '.join(summary.metadata.authors)}\n")
@@ -15,9 +17,10 @@ def generate(summary: Summary, out: Path) -> Path:
             print(f"Keywords: {', '.join([icon.keyword for icon in bullet.icons])}")
             f.write(f"\n\n###  {bullet.text.strip()}\n")
             f.write("\n:::::::::::::: {.columns}")
-            for icon in bullet.icons:
-                icon.save(out)
-                f.write('\n\n::: {.column width="40%"}')
+            for icon in bullet.icons[:2]:
+                used_icons.add(icon.id)
+                icon.save(out.parent)
+                f.write("\n\n::: {.column}")
                 f.write(f"\n![{icon.keyword}]({icon.filename})\n")
                 f.write("\n:::")
             f.write("\n::::::::::::::")

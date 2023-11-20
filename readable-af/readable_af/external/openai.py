@@ -1,11 +1,19 @@
 from dataclasses import dataclass
 import dataclasses
+from functools import cache
 from typing import Literal
 from .caching import localcache
-import openai
+from openai import OpenAI
+from openai.types.chat import ChatCompletion
+
 from ..config import Config
 from ..logger import logger
 import json
+
+
+@cache
+def client():
+    return OpenAI(api_key=Config.get().openai_api_key)
 
 
 @dataclass
@@ -15,16 +23,10 @@ class Message:
     _: dataclasses.KW_ONLY
     role: Literal["user", "assistant", "system"] = "user"
 
-    def __post_init__(self):
-        self.content = self.content.strip()
-        self.content = self.content.replace("\n", " ")
-
 
 @localcache
-def _completion_api(messages: list[dict], model="gpt-4") -> dict:
+def _completion_api(messages: list[dict], model="gpt-4") -> ChatCompletion:
     """Send a completion request to the OpenAI API."""
-    openai.organization = Config.openai_org_id
-    openai.api_key = Config.openai_api_key
     logger.debug(
         "Sending the following prompt: \n"
         + "\n"
@@ -32,11 +34,13 @@ def _completion_api(messages: list[dict], model="gpt-4") -> dict:
         + "\n"
     )
     # Idk what type this actually is should be so I'm ignoring it and pretending its a dict
-    return openai.ChatCompletion.create(model=model, messages=message_dicts)  # type: ignore
+    return client().chat.completions.create(model=model, messages=messages)  # type: ignore
 
 
 def completion(messages: list[Message], model="gpt-4") -> str:
     """Send a completion request to the OpenAI API and return the text of the response"""
     message_dicts = [dataclasses.asdict(message) for message in messages]
     response = _completion_api(message_dicts, model=model)
-    return response["choices"][0]["message"]["content"]
+    str_response = response.choices[0].message.content
+    assert str_response is not None
+    return str_response

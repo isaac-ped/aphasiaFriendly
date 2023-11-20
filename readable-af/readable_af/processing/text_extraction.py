@@ -103,6 +103,8 @@ def find_sections(pdf_file: Path) -> dict[str, str]:
         possible_heading = _section_heading(section)
         if possible_heading:
             heading = possible_heading
+        # Replace any sets of 3 or more newlines with just two newlines
+        section = re.sub(r"\n{2,}", "\n\n", section)
         sections[heading] += "\n" + section + "\n\n"
 
     return sections

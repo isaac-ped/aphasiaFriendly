@@ -9,15 +9,15 @@ def metadata_prompt(preamble: str) -> list[oa.Message]:
             "You are an assistant that handles the extraction of text from scientific articles. "
             "You will be provided with text that has been extracte from a scientific PDF and asked for a specific section "
             "of that text. The text may be extracted cleanly, in which case you may just be able to return the text "
-            "in the same format that it was given to you. "
+            "in the same format that it was given to you.\n"
             "Whenever a message is sent to you, it will contain messily extracted metadata from a scientific article. "
             "This metadata will should include the title, authors, and publication date of the article, but may also contain "
-            "other extraneous information, newlines, or other formatting. "
+            "other extraneous information, newlines, or other formatting.\n"
             "You should extract the title, authors, and publication date from the metadata and return them in the following format:"
             "The tile should be on the first line of the response, all authors on the second line, and the date on the third line. "
             "If multiple dates are available, you should choose the latest date and output only that. "
-            "If there are multiple authors, return up to three authors separated by commas and then 'et al.' "
-            "You should never respond with an answer other the specified text to be extracted",
+            "If there are multiple authors, return up to three authors separated by commas and then 'et al.'\n\n"
+            "You MUST always return EXACTLY three lines of text.",
             role="system",
         ),
         oa.Message(preamble),
@@ -35,13 +35,12 @@ def generate_metadata(preamble: str) -> Metadata:
 def abstract_prompt(messy_abstract: str) -> list[oa.Message]:
     return [
         oa.Message(
-            "You are an assistant that handles the extraction of text from scientific articles. "
-            "You will be provided with text that has been extracted from a scientific PDF and asked for a specific section "
-            "of that text. The text may be extracted cleanly, in which case you may just be able to return the text "
-            "in the same format that it was given to you. "
+            "You are an assistant that handles the extraction of an abstract from scientific articles.\n"
+            "You will be provided with text that has been extracted from a scientific PDF and you should find and "
+            "return the abstract from that text. It is possible that the text will be extracted cleanly, in which case "
+            "you should just return the text in the same format that it was given to you.\n"
             "However, you may be given the text alongside some other information or metadata that was added in a "
-            "messy extraction process. In that case, try to return only the part of the text that represents the section "
-            "that was requested. "
+            "messy extraction process. In that case, try to return only the part of the text that represents the abstract.\n\n"
             "You should never respond with an answer other the specified text to be extracted",
             role="system",
         ),
@@ -62,12 +61,13 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
             "You are an assistant that processes scientific articles into a few simple sentences "
             "that are understandable by someone that has difficulty reading. "
             "You will be passed the abstract of a scientific article and asked to summarize it. "
-            "Your summary should always produce 5 bullet points, each of which use very simple syntax "
-            "and vocabulary. "
-            "In particular, the words that you use should be as simple and common as possible, "
-            "and the sentences that you produce should have a flesch-kincaid score of less than 65."
+            "Your summary should always produce 5 sentences of summary, with each sentence "
+            "separated from other sentences by the | character."
+            "Each sentences should be shorter than 150 characters, and should use very simple syntax and vocabulary. "
+            "The words that you use should be as simple and common as possible, "
+            "and the sentences that you produce should have a flesch-kincaid score of less than 70."
             "All messages sent to you will contain a scientific abstract, and you should return "
-            "only with the summary as specified above, with each bullet on its own line, and never any additional text.",
+            "only with the summary as specified above, without any additional text. ",
             role="system",
         ),
         oa.Message(abstract),
@@ -78,26 +78,31 @@ def generate_bullets(abstract: str) -> list[Bullet]:
     prompt = summary_prompt(abstract)
     summary = oa.completion(prompt, model="gpt-4")
     logger.info(f"Generated the following summary: {summary}")
-    return [Bullet(line) for line in summary.split("\n")]
+    return [Bullet(line) for line in summary.split("|")]
 
 
 def icon_prompt(summary: str) -> list[oa.Message]:
     return [
         oa.Message(
             "You are an assistant that helps to choose apprioriate pictographic icons to accomany bullet points. "
-            "You will be provided with a list of bullet points (one per line) and asked to provide a list of keywords that would "
-            "allow you to search for an appropriate icon that would demonstrate the concepts represented in the bullet point. "
-            "The icons will be pictographic and simple. For instance, if the bullet point has "
-            "to do with a staticstic getting bigger, you might return 'upward arrow'. If the bulllet point "
-            "has to do with neurons, you might return 'brain' or 'thinking'. If it has to do with emotions, "
-            "you might return 'happy' or 'sad'.  "
-            "Each keyword should be a very common word, not a specialized word in any way. For example, instead of "
-            "'neuron' you might say 'cell' or 'brain'. Keywords should not be repeated across bullet points. "
-            "Your output should *only* contain these keywords - do *not* repeat the input prompt in any way, "
-            "with the keywords for each bullet point on their own line. "
-            "Keywords within a bullet point should be separated by a comma. "
-            "You should always provide as many lines as there were inputs. If you cannot provide an appropriate "
-            "keyword for a bullet point, you should return an empty line.",
+            "You will be provided with a list of bullet points (one per line) and you should respond with a list of EXACTLY 5 comma-separated search terms"
+            "that will be used as queries to search for icons that would demonstrate the concepts represented in the bullet point.\n"
+            "Your search terms should abide by the following rules: \n "
+            "- Search terms should consist of at most three words. \n"
+            "- Search terms should only be very common words. \n"
+            "- Only return phrases that have a CLEAR pictographic representation. For instance, use 'sick person' instead of a specific disease. \n"
+            '- Avoid using any words that have homographs - for example, never use the word "change" because it might mean "affect" or "money" \n'
+            "- If the bullet point includes negation (e.g. 'not', 'no', 'never'), you should always return a phrase like "
+            "'Crossed out' or 'X' or 'Circle with X' to reflect this.\n\n"
+            "The following are some examples of good phrases: \n"
+            "- To represent a staticstic getting larger, you might return 'upward arrow'. "
+            "- To represent a positive emoution you might return 'smiling faces' or 'happy people' \n"
+            "- To represent a speech disorder, you may return 'speech bubble with X'. \n"
+            "- To represent something not changing, you might return 'flat graph' or 'arrow with X'.\n\n"
+            "Your output should ONLY contain these keywords with the keywords for each bullet point on their own line. \n"
+            "Keywords within a bullet point should be separated by a comma, and should not be in quotes. \n "
+            "Within a line, keywords should be sorted in order of quality, with the best keywords first.\n\n"
+            "You MUST always output 5 search terms for EVERY line that was input, and no other text or formatting\n",
             role="system",
         ),
         oa.Message(summary),
@@ -109,7 +114,11 @@ def generate_icon_keywords(bullets: list[Bullet]) -> list[list[str]]:
 
     :returns: A list of keywords for each bullet point. If no keywords are appropriate for a bullet, an empty list is returned.
     """
-    prompt = icon_prompt("\n".join(bullet.text for bullet in bullets))
+    prompt = icon_prompt("\n".join("*" + bullet.text for bullet in bullets))
     icons_response = oa.completion(prompt, model="gpt-4")
     logger.info(f"Generated the following icons: {icons_response}")
-    return [line.split(",") for line in icons_response.split("\n")]
+    return [
+        [kw.strip() for kw in line.split(",")]
+        for line in icons_response.split("\n")
+        if line.strip()
+    ]

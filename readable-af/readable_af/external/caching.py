@@ -4,7 +4,7 @@ import pickle
 from ..logger import logger
 
 
-CACHE_DIR = Path(__file__).parent.parent / ".cache"
+CACHE_DIR = Path(__file__).parent.parent.parent / ".cache"
 
 
 def _make_hashable(x):

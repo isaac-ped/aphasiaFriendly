@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from ..config import Config
 
 
 @dataclass
@@ -13,7 +12,7 @@ class Icon:
     @property
     def filename(self) -> str:
         """The filename to save the icon to"""
-        return f"{self.keyword}.png"
+        return f"{self.keyword.replace(' ', '')}-{self.id}.png"
 
     def save(self, out_dir: Path):
         """Save the icon to the filesystem"""

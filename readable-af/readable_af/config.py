@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import dataclasses
 import os
 from pathlib import Path
+from typing import ClassVar
 
 
 _openai_api_key_file = Path(__file__).parent.parent / ".openai-key"
@@ -21,7 +22,6 @@ def _get_secret(env_var: str, secret_file: Path) -> str:
 
 @dataclass
 class Config:
-    out_dir: Path
     n_icons: int = 3
 
     openai_org_id: str = "org-byzsYSY4AKLquKGVxYWLjnOv"
@@ -38,7 +38,14 @@ class Config:
     def nounproject_secret(self) -> str:
         return _get_secret("NOUNPROJECT_SECRET", _nounproject_secret_file)
 
+    instance: ClassVar["Config| None"] = None
+
     def __post_init__(self):
-        """Set default class variables to be equal to instance variables."""
-        for k, v in dataclasses.asdict(self).items():
-            setattr(Config, k, v)
+        Config.instance = self
+
+    @classmethod
+    def get(cls) -> "Config":
+        if cls.instance is None:
+            cls.instance = Config()
+        assert cls.instance is not None
+        return cls.instance
