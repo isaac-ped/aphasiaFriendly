@@ -1,3 +1,24 @@
-# Aphasia Friendly Communcation
+# Readable AF
 
-SPA for creating aphasia friendly communication from complicated texts
+Creating aphasia friendly communication from complicated texts.
+
+## Installation
+
+This repository is set up for dependency management with [nix](https://nixos.org/)
+
+Follow the instructions on that site or use the quick command:
+
+```shell
+sh <(curl -L https://nixos.org/nix/install) --daemon
+```
+to install nix, then run
+
+```
+nix-shell
+```
+
+from this directory to enter a shell with all dependencies installed.
+
+## Usage
+
+From the folder [readable-af](./readable-af), run `./af` to use the CLI.
