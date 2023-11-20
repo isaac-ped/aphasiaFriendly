@@ -12,8 +12,7 @@ def search(query: str, n: int) -> list[Icon]:
     if not icon_ids:
         return []
     icons: list[Icon] = []
-    for _ in range(n):
-        icon_id = icon_ids[0]
+    for icon_id in icon_ids[:n]:
         icon_url = _get_icon_url(icon_id)
         icon = _get_icon(icon_url)
         icons.append(Icon(query, icon_url, icon, icon_id))

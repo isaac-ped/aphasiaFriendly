@@ -25,7 +25,7 @@ class Message:
 
 
 @localcache
-def _completion_api(messages: list[dict], model="gpt-4") -> ChatCompletion:
+def _completion_api(messages: list[dict], model="gpt-4-1106-preview") -> ChatCompletion:
     """Send a completion request to the OpenAI API."""
     logger.debug(
         "Sending the following prompt: \n"
@@ -37,7 +37,7 @@ def _completion_api(messages: list[dict], model="gpt-4") -> ChatCompletion:
     return client().chat.completions.create(model=model, messages=messages)  # type: ignore
 
 
-def completion(messages: list[Message], model="gpt-4") -> str:
+def completion(messages: list[Message], model="gpt-4-1106-preview") -> str:
     """Send a completion request to the OpenAI API and return the text of the response"""
     message_dicts = [dataclasses.asdict(message) for message in messages]
     response = _completion_api(message_dicts, model=model)

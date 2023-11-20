@@ -2,6 +2,8 @@ from ..external import openai as oa
 from readable_af.model.summary import Bullet, Metadata
 from ..logger import logger
 
+MODEL = "gpt-4-1106-preview"
+
 
 def metadata_prompt(preamble: str) -> list[oa.Message]:
     return [
@@ -26,7 +28,7 @@ def metadata_prompt(preamble: str) -> list[oa.Message]:
 
 def generate_metadata(preamble: str) -> Metadata:
     messages = metadata_prompt(preamble)
-    response = oa.completion(messages, model="gpt-4")
+    response = oa.completion(messages, model=MODEL)
     title, authors, date = response.split("\n")
     logger.info(f"Generated the following metadata: {title=}, {authors=}, {date=}")
     return Metadata(title, authors.split(","), date)
@@ -50,7 +52,7 @@ def abstract_prompt(messy_abstract: str) -> list[oa.Message]:
 
 def generate_abstract(messy_abstract: str) -> str:
     messages = abstract_prompt(messy_abstract)
-    abstract = oa.completion(messages, model="gpt-4")
+    abstract = oa.completion(messages, model=MODEL)
     logger.info(f"Generated the following asbtract: {abstract}")
     return abstract
 
@@ -76,7 +78,7 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
 
 def generate_bullets(abstract: str) -> list[Bullet]:
     prompt = summary_prompt(abstract)
-    summary = oa.completion(prompt, model="gpt-4")
+    summary = oa.completion(prompt, model=MODEL)
     logger.info(f"Generated the following summary: {summary}")
     return [Bullet(line) for line in summary.split("|")]
 
@@ -115,7 +117,7 @@ def generate_icon_keywords(bullets: list[Bullet]) -> list[list[str]]:
     :returns: A list of keywords for each bullet point. If no keywords are appropriate for a bullet, an empty list is returned.
     """
     prompt = icon_prompt("\n".join("*" + bullet.text for bullet in bullets))
-    icons_response = oa.completion(prompt, model="gpt-4")
+    icons_response = oa.completion(prompt, model=MODEL)
     logger.info(f"Generated the following icons: {icons_response}")
     return [
         [kw.strip() for kw in line.split(",")]

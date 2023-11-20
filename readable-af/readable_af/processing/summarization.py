@@ -4,6 +4,7 @@ from ..external import nounproject
 from ..model.summary import Bullet, Summary
 from . import text_extraction
 from . import generation
+from ..logger import logger
 
 
 def get_bullet_icons(bullet: Bullet, keywords: list[str], used_icons: set[int]):
@@ -11,11 +12,13 @@ def get_bullet_icons(bullet: Bullet, keywords: list[str], used_icons: set[int]):
         if len(bullet.icons) >= 2:
             return
         icons = nounproject.search(keyword, 5)
-        for icon in icons:
+        for i, icon in enumerate(icons):
             if icon.id not in used_icons:
                 bullet.icons.append(icon)
                 used_icons.add(icon.id)
                 break
+            else:
+                logger.info(f"Icon {i} ({icon.id}) already used. Skipping")
 
 
 def summarize(input_file: Path) -> Summary:
@@ -34,6 +37,9 @@ def summarize(input_file: Path) -> Summary:
         # If we couldn't get two unique icons per keyword, try again
         # allowing us to use another icon for the same keyword
         if len(bullet.icons) < 2:
+            logger.debug(
+                f"Got only {len(bullet.icons)} icons. Trying again to get icons for bullet"
+            )
             get_bullet_icons(bullet, keywords, used_ids)
 
     return Summary(
