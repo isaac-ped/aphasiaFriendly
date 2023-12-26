@@ -30,6 +30,7 @@ def populate(icon: Icon, blacklist: set[int]) -> bool:
         contents = _get_icon(icon_url)
         icon.populate(icon_url, contents, icon_id)
         logger.info(f"Using icon {icon_url} for {icon}")
+        blacklist.add(icon_id)
         return True
     logger.warning(f"Used all of the icons for keyword {keyword}. Skipping")
     return False
