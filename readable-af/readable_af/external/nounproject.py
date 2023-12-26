@@ -1,22 +1,38 @@
 import json
-from ..config import Config
-from requests_oauthlib import OAuth1
-from .caching import localcache
-from ..model.summary import Icon
+import keyword
+
 import requests
+from requests_oauthlib import OAuth1
+
+from ..config import Config
+from ..logger import logger
+from ..model.summary import Icon
+from .caching import localcache
 
 
-def search(query: str, n: int) -> list[Icon]:
-    """Search for an icon matching a query. Return None if no icons are found."""
-    icon_ids = _find_icon_ids(query)
+def populate(icon: Icon, blacklist: set[int]) -> bool:
+    """Populate an icon containing a keyword with its image data.
+    :returns: True if the icon was successfully populated. False if keyword search failed.
+    """
+    if icon.up_to_date():
+        logger.debug(f"Icon {icon.keyword}:{icon.id} is already up to date")
+        blacklist.add(icon.id)
+        return True
+    icon_ids = _find_icon_ids(icon.keyword)
     if not icon_ids:
-        return []
-    icons: list[Icon] = []
-    for icon_id in icon_ids[:n]:
+        logger.debug(f"Could not find any icons for keyword {icon.keyword}")
+        return False
+    for icon_id in icon_ids:
+        if icon_id in blacklist:
+            logger.info(f"Skipping icon {icon_id}")
+            continue
         icon_url = _get_icon_url(icon_id)
-        icon = _get_icon(icon_url)
-        icons.append(Icon(query, icon_url, icon, icon_id))
-    return icons
+        contents = _get_icon(icon_url)
+        icon.populate(icon_url, contents, icon_id)
+        logger.info(f"Using icon {icon_url} for {icon}")
+        return True
+    logger.warning(f"Used all of the icons for keyword {keyword}. Skipping")
+    return False
 
 
 @localcache

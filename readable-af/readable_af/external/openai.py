@@ -1,14 +1,15 @@
-from dataclasses import dataclass
 import dataclasses
+import json
+from dataclasses import dataclass
 from functools import cache
 from typing import Literal
-from .caching import localcache
+
 from openai import OpenAI
 from openai.types.chat import ChatCompletion
 
 from ..config import Config
 from ..logger import logger
-import json
+from .caching import localcache
 
 
 @cache

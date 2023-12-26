@@ -1,9 +1,8 @@
-from dataclasses import dataclass
 import dataclasses
 import os
+from dataclasses import dataclass
 from pathlib import Path
 from typing import ClassVar
-
 
 _openai_api_key_file = Path(__file__).parent.parent / ".openai-key"
 _nounproject_api_key_file = Path(__file__).parent.parent / ".nounproject-key"
@@ -47,5 +46,4 @@ class Config:
     def get(cls) -> "Config":
         if cls.instance is None:
             cls.instance = Config()
-        assert cls.instance is not None
         return cls.instance

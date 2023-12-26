@@ -20,8 +20,10 @@ class Ctx:
     """
 
     input: Input = field(default_factory=Input)
+    output_format: str = "pptx"
     file_contents: str | None = None
     abstract_contents: str | None = None
     preamble_contents: str | None = None
     summary: Summary | None = None
+    output_dir: Path | None = None
     output_file: Path | None = None

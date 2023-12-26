@@ -1,24 +1,24 @@
 """High-level API for summarization."""
 from pathlib import Path
+
+import yaml
+
 from ..external import nounproject
-from ..model.summary import Bullet, Summary
-from . import text_extraction
-from . import generation
 from ..logger import logger
+from ..model.summary import Bullet, Icon, Metadata, Summary
+from . import generation, text_extraction
 
 
 def get_bullet_icons(bullet: Bullet, keywords: list[str], used_icons: set[int]):
     for keyword in keywords:
         if len(bullet.icons) >= 2:
             return
-        icons = nounproject.search(keyword, 5)
-        for i, icon in enumerate(icons):
-            if icon.id not in used_icons:
-                bullet.icons.append(icon)
-                used_icons.add(icon.id)
-                break
-            else:
-                logger.info(f"Icon {i} ({icon.id}) already used. Skipping")
+        icon = Icon(keyword)
+        if nounproject.populate(icon, used_icons):
+            logger.info(f"Found icon for keyword {keyword}")
+            bullet.icons.append(icon)
+        else:
+            logger.info(f"Could not find icon for {keyword}")
 
 
 def summarize(input_file: Path) -> Summary:
@@ -42,6 +42,21 @@ def summarize(input_file: Path) -> Summary:
             )
             get_bullet_icons(bullet, keywords, used_ids)
 
+    return Summary(
+        metadata=metadata,
+        bullets=bullets,
+    )
+
+
+def reload(input_file: Path) -> Summary:
+    with input_file.open() as f:
+        input = yaml.safe_load(f)
+    metadata = Metadata.fromdict(input["metadata"])
+    bullets = [Bullet.fromdict(bullet) for bullet in input["bullets"]]
+    used_ids: set[int] = set()
+    for bullet in bullets:
+        for icon in bullet.icons:
+            nounproject.populate(icon, used_ids)
     return Summary(
         metadata=metadata,
         bullets=bullets,

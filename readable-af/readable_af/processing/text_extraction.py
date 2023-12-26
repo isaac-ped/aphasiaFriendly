@@ -1,13 +1,13 @@
 """Attempt to extract abstracts from an academic PDF"""
-from functools import lru_cache
 import re
 from collections import defaultdict
+from functools import lru_cache
 from pathlib import Path
-from ..model.request import Ctx
 
 import textract
-from ..logger import logger
 
+from ..logger import logger
+from ..model.request import Ctx
 
 KNOWN_SECTIONS = (
     "abstract",

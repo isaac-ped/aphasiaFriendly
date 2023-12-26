@@ -1,5 +1,6 @@
-from ..external import openai as oa
 from readable_af.model.summary import Bullet, Metadata
+
+from ..external import openai as oa
 from ..logger import logger
 
 MODEL = "gpt-4-1106-preview"
@@ -31,7 +32,9 @@ def generate_metadata(preamble: str) -> Metadata:
     response = oa.completion(messages, model=MODEL)
     title, authors, date = response.split("\n")
     logger.info(f"Generated the following metadata: {title=}, {authors=}, {date=}")
-    return Metadata(title, authors.split(","), date)
+    return Metadata(
+        title.strip(), [a.strip() for a in authors.split(",")], date.strip()
+    )
 
 
 def abstract_prompt(messy_abstract: str) -> list[oa.Message]:
@@ -54,7 +57,7 @@ def generate_abstract(messy_abstract: str) -> str:
     messages = abstract_prompt(messy_abstract)
     abstract = oa.completion(messages, model=MODEL)
     logger.info(f"Generated the following asbtract: {abstract}")
-    return abstract
+    return abstract.strip()
 
 
 def summary_prompt(abstract: str) -> list[oa.Message]:
@@ -80,7 +83,7 @@ def generate_bullets(abstract: str) -> list[Bullet]:
     prompt = summary_prompt(abstract)
     summary = oa.completion(prompt, model=MODEL)
     logger.info(f"Generated the following summary: {summary}")
-    return [Bullet(line) for line in summary.split("|")]
+    return [Bullet(line.strip()) for line in summary.split("|")]
 
 
 def icon_prompt(summary: str) -> list[oa.Message]:
