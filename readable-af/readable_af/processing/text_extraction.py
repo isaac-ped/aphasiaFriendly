@@ -75,10 +75,11 @@ def find_abstract(input_file: Path) -> str:
     )
     # If the guessed text is too long, just use the located section instead
     if len(guessed_text) > 4192:
-        logger.info(f"Broad heuristic for abstract location is too long ({len(guessed_text)} characters). Using single section instead.")
+        logger.warn(f"Broad heuristic for abstract location is too long ({len(guessed_text)} characters). Using single section instead.")
         guessed_text = sections[section_order[abstract_ind]]
     if len(guessed_text) > 4192:
         raise ValueError("Possible abstract is too long. Sorry!")
+    logger.info(f"Found abstract of length {len(guessed_text)}")
     return guessed_text
 
 
