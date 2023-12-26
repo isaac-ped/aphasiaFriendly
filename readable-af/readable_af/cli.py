@@ -26,8 +26,9 @@ def cli():
     default=["pptx"],
     multiple=True,
 )
+@click.option("--open/--no-open", "do_open", default=True, help="Open the output file after generating")
 @click.option("-v", "--verbose", count=True)
-def summarize(input_file: Path, out: Path, formats: list[str], verbose: int = 0):
+def summarize(input_file: Path, out: Path, formats: list[str], do_open: bool, verbose: int = 0):
     """Create an aphasia-friendly summary of an academic paper abstract."""
     setup_logging(verbose)
 
@@ -40,7 +41,7 @@ def summarize(input_file: Path, out: Path, formats: list[str], verbose: int = 0)
         ctx.output_format = format
         api.summarize(ctx)
         assert ctx.output_file is not None
-        if format == "pptx":
+        if format == "pptx" and do_open:
             subprocess.call(["open", ctx.output_file])
         print(f"Generated file {ctx.output_file}")
 
@@ -57,8 +58,9 @@ def summarize(input_file: Path, out: Path, formats: list[str], verbose: int = 0)
     default=["pptx"],
     multiple=True,
 )
+@click.option("--open/--no-open", "do_open", default=True, help="Open the output file after generating")
 @click.option("-v", "--verbose", count=True)
-def rerun(input_file: Path, out: Path, formats: list[str], verbose: int = 0):
+def rerun(input_file: Path, out: Path, formats: list[str], do_open: bool, verbose: int = 0):
     """Re-run the summary generation process on a previously summarized file."""
     setup_logging(verbose)
 
@@ -71,6 +73,6 @@ def rerun(input_file: Path, out: Path, formats: list[str], verbose: int = 0):
         ctx.output_format = format
         api.rerun(ctx)
         assert ctx.output_file is not None
-        if format == "pptx":
+        if format == "pptx" and do_open:
             subprocess.call(["open", ctx.output_file])
         print(f"Generated file {ctx.output_file}")
