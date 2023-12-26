@@ -14,7 +14,7 @@ def populate(icon: Icon, blacklist: set[int]) -> bool:
     """Populate an icon containing a keyword with its image data.
     :returns: True if the icon was successfully populated. False if keyword search failed.
     """
-    if icon.up_to_date():
+    if icon.up_to_date() and icon.id not in blacklist:
         logger.debug(f"Icon {icon.keyword}:{icon.id} is already up to date")
         blacklist.add(icon.id)
         return True
