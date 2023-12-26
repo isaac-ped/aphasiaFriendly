@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Helper script to run summarization on all inputs
 mkdir -p finetuning
+set -eu
 for X in inputs/*.pdf; do
     echo "###### Running on $X"
     BASENAME="$(basename "$X")"
