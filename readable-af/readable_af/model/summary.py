@@ -1,7 +1,8 @@
 import dataclasses
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, NewType, TypeGuard, TypeVar
+from typing import Any, TypeGuard, TypeVar
+from ..logger import logger
 
 
 class UnpopulatedException(Exception):
@@ -10,18 +11,20 @@ class UnpopulatedException(Exception):
     pass
 
 
+@dataclass
 class Icon:
-    def __init__(self, keyword: str):
-        self.keyword = keyword
+    keyword: str
+    _url: str | None = None
+    _icon: bytes | None = None
+    _id: int | None = None
 
-        self._url: str | None = None
-        self._icon: bytes | None = None
-        self._id: int | None = None
-        self._checksum: int | None = None
+
+    def calculate_checksum(self) -> int:
+        return hash((self.keyword, self._id))
 
     # Use properties to ensure setting the icon also sets the checksum
     @property
-    def icon_url(self) -> str:
+    def url(self) -> str:
         if not self.up_to_date(self._url):
             raise UnpopulatedException("Icon not populated")
         return self._url
@@ -39,13 +42,12 @@ class Icon:
         return self._id
 
     def __repr__(self):
-        return f"Icon<{self.keyword}:{self.id}>"
+        return f"Icon<{self.keyword}:{self._id}>"
 
     def populate(self, icon_url: str, icon: bytes, id: int):
         self._url = icon_url
         self._icon = icon
         self._id = id
-        self._checksum = hash((self.keyword, self._id))
 
     UNSET = object()
 
@@ -60,7 +62,7 @@ class Icon:
             return False
         elif field is None:
             return False
-        return self._checksum == hash((self.keyword, self._id))  # type: ignore
+        return True
 
     @property
     def filename(self) -> str:
@@ -76,18 +78,21 @@ class Icon:
         return {
             "keyword": self.keyword,
             "_url": self._url,
-            "_checksum": self._checksum,
             "_id": self._id,
+            "_checksum": self.calculate_checksum(),
         }
 
     @classmethod
     def fromdict(cls, input: dict[str, Any]):
         self = cls(
             keyword=input["keyword"],
+            _url=input["_url"],
+            _id=input["_id"],
         )
-        self._url = input["_url"]
-        self._checksum = input["_checksum"]
-        self._id = input["_id"]
+        if input["_checksum"] != self.calculate_checksum():
+            logger.info("Icon checksum mismatch, resetting")
+            self._url = None
+            self._id = None
         return self
 
 
@@ -110,18 +115,23 @@ class Bullet:
     text: str
     icons: list[Icon] = field(default_factory=list)
 
+    def calculate_checksum(self) -> int:
+        return hash(self.text)
+
     def asdict(self) -> dict[str, Any]:
         return {
             "text": self.text,
             "icons": [icon.asdict() for icon in self.icons],
         }
+    
 
     @classmethod
-    def fromdict(cls, input: dict[str, Any]):
-        return cls(
-            text=input["text"],
-            icons=[Icon.fromdict(icon) for icon in input["icons"]],
+    def fromdict(cls, input: dict[str, Any]) -> "Bullet":
+        self = cls(
+            text=input["text"]
         )
+        self.icons=[Icon.fromdict(icon) for icon in input["icons"]]
+        return self
 
 
 @dataclass

@@ -3,22 +3,25 @@ from pathlib import Path
 
 import yaml
 
+from ..errors import AFException
 from ..external import nounproject
 from ..logger import logger
 from ..model.summary import Bullet, Icon, Metadata, Summary
 from . import generation, text_extraction
 
 
-def get_bullet_icons(bullet: Bullet, keywords: list[str], used_icons: set[int]):
-    for keyword in keywords:
-        if len(bullet.icons) >= 2:
-            return
-        icon = Icon(keyword)
+def get_bullet_icons(bullet: Bullet, used_icons: set[int]):
+    successes: list[Icon] = []
+    for icon in bullet.icons:
         if nounproject.populate(icon, used_icons):
-            logger.info(f"Found icon for keyword {keyword}")
-            bullet.icons.append(icon)
-        else:
-            logger.info(f"Could not find icon for {keyword}")
+            logger.info(f"Using icon {icon.url} for {icon}")
+            used_icons.add(icon.id)
+            successes.append(icon)
+        if len(successes) >= 2:
+            break
+    if len(successes) != 2:
+        raise AFException(f"Could not find enough icons for bullet '{bullet.text}'")
+    bullet.icons = successes
 
 
 def summarize(input_file: Path) -> Summary:
@@ -33,14 +36,8 @@ def summarize(input_file: Path) -> Summary:
     used_ids: set[int] = set()
 
     for bullet, keywords in zip(bullets, icon_keywords):
-        get_bullet_icons(bullet, keywords, used_ids)
-        # If we couldn't get two unique icons per keyword, try again
-        # allowing us to use another icon for the same keyword
-        if len(bullet.icons) < 2:
-            logger.debug(
-                f"Got only {len(bullet.icons)} icons. Trying again to get icons for bullet"
-            )
-            get_bullet_icons(bullet, keywords, used_ids)
+        bullet.icons = [Icon(keyword) for keyword in keywords]
+        get_bullet_icons(bullet, used_ids)
 
     return Summary(
         metadata=metadata,
@@ -53,10 +50,12 @@ def reload(input_file: Path) -> Summary:
         input = yaml.safe_load(f)
     metadata = Metadata.fromdict(input["metadata"])
     bullets = [Bullet.fromdict(bullet) for bullet in input["bullets"]]
+
     used_ids: set[int] = set()
+
     for bullet in bullets:
-        for icon in bullet.icons:
-            nounproject.populate(icon, used_ids)
+        get_bullet_icons(bullet, used_ids)
+
     return Summary(
         metadata=metadata,
         bullets=bullets,
