@@ -71,8 +71,13 @@ def find_abstract(input_file: Path) -> str:
     # Either way, we return that section and one more section after it,
     # Just in case we are cutting it off early
     guessed_text = "\n\n".join(
-        sections[section] for section in section_order[abstract_ind : abstract_ind + 2]
+        sections[section] for section in section_order[abstract_ind : abstract_ind + 1]
     )
+    # If the guessed text is too long, just use the located section instead
+    if len(guessed_text) > 4192:
+        guessed_text = sections[section_order[abstract_ind]]
+    if len(guessed_text) > 4192:
+        raise ValueError("Possible abstractis too long. Sorry!")
     return guessed_text
 
 
