@@ -43,7 +43,7 @@ def localcache(fn):
                 logger.warning("Got: %s", info)
 
         with cache_info.open("w") as f:
-            json.dump(to_hash, f)
+            json.dump(to_hash, f, indent=2)
         return cache_file, False
 
     def wrapper(*args, **kwargs):
