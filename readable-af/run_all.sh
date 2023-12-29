@@ -3,6 +3,10 @@
 mkdir -p finetuning
 set -eu
 for X in inputs/*.txt; do
+    if ! [ -s "$X" ] ; then
+        echo "File $X is empty. Skipping"
+        continue
+    fi
     echo "###### Running on $X"
     BASENAME="$(basename "$X")"
     NAME="${BASENAME%.*}"
