@@ -1,0 +1,15 @@
+fly.toml
+.nounproject-key
+.nounproject-secret
+.openai-key
+inputs
+output
+.cache
+.pytest_cache
+.venv
+.vscode
+finetuning
+inputs
+tmp
+*~
+
