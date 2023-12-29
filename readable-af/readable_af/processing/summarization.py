@@ -3,6 +3,8 @@ from pathlib import Path
 
 import yaml
 
+from ..model.request import Ctx
+
 from ..errors import AFException
 from ..external import nounproject
 from ..logger import logger
@@ -40,19 +42,17 @@ def summarize(input_file: Path) -> Summary:
         metadata = Metadata(title=title, authors=authors.split(","), date="")
 
 
-    bullets = generation.generate_bullets(abstract)
-    icon_keywords = generation.generate_icon_keywords(bullets)
+    summary = Summary(metadata=metadata, bullets=[])
+    generation.generate_bullets(summary, abstract)
+    icon_keywords = generation.generate_icon_keywords(summary.bullets)
 
     used_ids: set[int] = set()
 
-    for bullet, keywords in zip(bullets, icon_keywords):
+    for bullet, keywords in zip(summary.bullets, icon_keywords):
         bullet.icons = [Icon(keyword) for keyword in keywords]
         get_bullet_icons(bullet, used_ids)
 
-    return Summary(
-        metadata=metadata,
-        bullets=bullets,
-    )
+    return summary
 
 
 def reload(input_file: Path) -> Summary:

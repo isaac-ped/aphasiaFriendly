@@ -89,10 +89,14 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
 
 def generate_bullets(summary: Summary, abstract: str) -> None:
     prompt = summary_prompt(abstract)
-    response = oa.completion(prompt, model=MODEL)
-    logger.info(f"Generated the following summary: {summary}")
+    response = oa.completion(prompt, model=MODEL).strip()
     if response.startswith("```json"):
-        response = response.removesuffix("```json").removesuffix("```")
+        logger.debug("Removing ```json prefix")
+        # Remove all lines starting with ````
+        response = '\n'.join([
+            line for line in response.split("\n") if not line.startswith("```")
+        ])
+    logger.info(f"Generated the following summary: {response}")
     response=json.loads(response)
     for entry in response["summary"]:
         summary.bullets.append(Bullet(entry))

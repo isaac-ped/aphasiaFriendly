@@ -13,7 +13,8 @@ class PPTXGenerator:
 
         used_icons = set()
         with md_file.open("w") as f:
-            f.write(f"% {summary.metadata.title}\n")
+            f.write(f"% {summary.metadata.title} )\n")
+            f.write(f"% Rating: {summary.rating}\n")
             f.write(f"% {', '.join(summary.metadata.authors)}\n")
             f.write(f"% {summary.metadata.date}\n")
             for bullet in summary.bullets:
