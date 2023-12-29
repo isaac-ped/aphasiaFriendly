@@ -20,7 +20,7 @@ def populate(icon: Icon, blacklist: set[int]) -> bool:
         return False
     for icon_id in icon_ids:
         if icon_id in blacklist:
-            logger.info(f"Skipping icon {icon_id}")
+            logger.debug(f"Skipping icon {icon_id}")
             continue
         icon_url = _get_icon_url(icon_id)
         contents = _get_icon(icon_url)

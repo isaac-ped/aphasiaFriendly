@@ -1,3 +1,4 @@
+import json
 from ..external import openai as oa
 from readable_af.model.summary import Bullet, Metadata
 from ..logger import logger
@@ -63,13 +64,23 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
             "You are an assistant that processes scientific articles into a few simple sentences "
             "that are understandable by someone that has difficulty reading. "
             "You will be passed the abstract of a scientific article and asked to summarize it. "
-            "Your summary should always produce 5 sentences of summary, with each sentence "
-            "separated from other sentences by the | character."
-            "Each sentences should be shorter than 150 characters, and should use very simple syntax and vocabulary. "
+            "Your summary should always produce 5-7 sentences of summary. "#, with each sentence "
+            #"separated from other sentences by the | character."
+            "Each sentence should be shorter than 150 characters, and should use very simple syntax and vocabulary. "
             "The words that you use should be as simple and common as possible, "
-            "and the sentences that you produce should have a flesch-kincaid score of less than 70."
-            "All messages sent to you will contain a scientific abstract, and you should return "
-            "only with the summary as specified above, without any additional text. ",
+            "while still reflecting the specific content of the abstract. "
+            "If you introduce complicated, low-frequency terms, please explicitly define them in simpler terms. "
+            "Use only those simpler terms moving forward. "
+            "Be specific about brain locations, "
+            "for example, do not say 'brain spots', but say 'temporal lobe' or 'frontal lobe'."
+            "The sentences that you produce should have a flesch-kincaid score of less than 75. "
+            "Be conservative in your statement of facts. "
+            "For example, do not say 'The brain does not', but say 'The brain may not.' "
+            "The last bullet point should summarize the abstract in one sentence. "
+            #"All messages sent to you will contain a scientific abstract, and you should return "
+            #"only with the summary as specified above, without any additional text. ",
+            "Return your response in json format, with the keys 'summary', containing a list of strings with the bullet points, " 
+            "and 'rating', containing your rating on a scale from 1-10 of how good the summary you produced seems to be. ",
             role="system",
         ),
         oa.Message(abstract),
@@ -80,6 +91,12 @@ def generate_bullets(abstract: str) -> list[Bullet]:
     prompt = summary_prompt(abstract)
     summary = oa.completion(prompt, model=MODEL)
     logger.info(f"Generated the following summary: {summary}")
+    summary = "\n".join([x for x in summary.split("\n") if not x.startswith('```')])
+    response=json.loads(summary)
+    bullets = []
+    for entry in response["summary"]:
+        bullets.append(Bullet(entry))
+    return bullets
     bullets = []
     for line in summary.split("|"):
         if line := line.strip():
@@ -121,6 +138,9 @@ def generate_icon_keywords(bullets: list[Bullet]) -> list[list[str]]:
     :returns: A list of keywords for each bullet point. If no keywords are appropriate for a bullet, an empty list is returned.
     """
     prompt = icon_prompt("\n".join("*" + bullet.text for bullet in bullets))
+    return [
+        ["ok","ok"]
+    ] * 5
     icons_response = oa.completion(prompt, model=MODEL)
     logger.info(f"Generated the following icons: {icons_response}")
     return [
