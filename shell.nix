@@ -8,6 +8,8 @@ pkgs.mkShell {
   buildInputs = [
     imgcat
 
+    pkgs.flyctl
+
     pkgs.python312
     pkgs.poetry
     # A command runner that I like
