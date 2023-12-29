@@ -6,8 +6,8 @@ from .model.request import Ctx
 from .output import get_generator
 from .processing import summarization
 
-DEFAULT_OUT_DIR = Path("./output/")
-RERUN_OUT_DIR = Path("./output/rerun/")
+DEFAULT_OUT_DIR = Path("./outputs/")
+RERUN_OUT_DIR = Path("./outputs/rerun/")
 
 
 def summarize(ctx: Ctx):

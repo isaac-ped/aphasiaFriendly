@@ -3,7 +3,7 @@ fly.toml
 .nounproject-secret
 .openai-key
 /inputs
-/output
+/outputs
 .cache
 .pytest_cache
 .venv
