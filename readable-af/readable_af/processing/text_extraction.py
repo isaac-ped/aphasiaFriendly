@@ -101,8 +101,19 @@ def find_abstract(input_file: Path) -> str:
     if abstract_ind == -1:
         logger.warn("Could not find abstract in paper. Attempting to find 'summary' instead")
         abstract_ind = find_section_index(paper_text, "summary")
-        if abstract_ind == -1:
-            raise ValueError("Could not find abstract in paper. Sorry!")
+    if abstract_ind == -1:
+        logger.warn("Could not find summary in paper either. Attempting to find introduction.")
+        intro_ind = find_section_index(paper_text, "introduction")
+        if intro_ind == -1:
+            logger.warn("Could not find introduction in paper either. Giving up.")
+            raise ValueError("Could not find abstract")
+        logger.info("Returning everything prior to introduction as abstract")
+        if intro_ind > 4192:
+            logger.error("Abstruct is impossibly long. Refusing to process!")
+            raise ValueError("Abstract is too long")
+        return paper_text[:intro_ind]
+            
+            
     # Find the next section heading after the abstract
     next_ind = len(paper_text)
     for section in KNOWN_SECTIONS:
