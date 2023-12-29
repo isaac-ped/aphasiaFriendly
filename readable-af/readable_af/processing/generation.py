@@ -1,6 +1,6 @@
 import json
 from ..external import openai as oa
-from readable_af.model.summary import Bullet, Metadata
+from readable_af.model.summary import Bullet, Metadata, Summary
 from ..logger import logger
 
 MODEL = "gpt-4-1106-preview"
@@ -87,21 +87,16 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
     ]
 
 
-def generate_bullets(abstract: str) -> list[Bullet]:
+def generate_bullets(summary: Summary, abstract: str) -> None:
     prompt = summary_prompt(abstract)
-    summary = oa.completion(prompt, model=MODEL)
+    response = oa.completion(prompt, model=MODEL)
     logger.info(f"Generated the following summary: {summary}")
-    summary = "\n".join([x for x in summary.split("\n") if not x.startswith('```')])
-    response=json.loads(summary)
-    bullets = []
+    if response.startswith("```json"):
+        response = response.removesuffix("```json").removesuffix("```")
+    response=json.loads(response)
     for entry in response["summary"]:
-        bullets.append(Bullet(entry))
-    return bullets
-    bullets = []
-    for line in summary.split("|"):
-        if line := line.strip():
-            bullets.append(Bullet(line))
-    return bullets
+        summary.bullets.append(Bullet(entry))
+    summary.rating = str(response["rating"])
 
 
 def icon_prompt(summary: str) -> list[oa.Message]:

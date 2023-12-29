@@ -137,7 +137,8 @@ class Bullet:
 @dataclass
 class Summary:
     metadata: Metadata
-    bullets: list[Bullet]
+    rating: str = "N/A"
+    bullets: list[Bullet] = field(default_factory=list)
 
     def asdict(self) -> dict[str, Any]:
         return {
