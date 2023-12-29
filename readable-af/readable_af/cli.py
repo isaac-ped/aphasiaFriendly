@@ -6,6 +6,7 @@ import json
 
 import click
 
+from .external import caching
 from . import api
 from .logger import logger, setup_logging
 from .model.request import Ctx
@@ -29,12 +30,14 @@ def cli():
     default=["pptx"],
     multiple=True,
 )
+@click.option("--cache/--no-cache", "do_cache", default=True, help="If --no-cache, ignore cache when generating")
 @click.option("--open/--no-open", "do_open", default=True, help="Open the output file after generating")
 @click.option("-v", "--verbose", count=True)
-def summarize(input_file: Path, out: Path, formats: list[str], do_open: bool, verbose: int = 0):
+def summarize(input_file: Path, out: Path, formats: list[str], do_open: bool,  do_cache: bool, verbose: int = 0):
     """Create an aphasia-friendly summary of an academic paper abstract."""
     setup_logging(verbose)
-
+    if not do_cache:
+        caching.NO_CACHE = True
     base_ctx = Ctx()
     base_ctx.input.file = input_file
     base_ctx.output_dir = out

@@ -6,6 +6,7 @@ from ..logger import logger
 
 CACHE_DIR = Path(__file__).parent.parent.parent / ".cache"
 
+NO_CACHE=False
 
 def _make_hashable(x):
     if isinstance(x, (list, tuple)):
@@ -50,7 +51,7 @@ def localcache(fn):
         c_f, is_cached = cache_file(*args, **kwargs)
         logger.debug(f"Cache file: {c_f}")
         logger.debug(f"Cache exists? {is_cached}")
-        if is_cached:
+        if is_cached and not NO_CACHE:
             with c_f.open("rb") as f:
                 try:
                     return pickle.load(f)
