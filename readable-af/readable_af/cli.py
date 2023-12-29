@@ -86,10 +86,18 @@ def rerun(input_file: Path, out: Path, formats: list[str], do_open: bool, verbos
 def abstract_count(input_files: list[Path], verbose: int = 0):
     """Re-run the summary generation process on a previously summarized file."""
     setup_logging(verbose)
+    failures = set()
     abstracts = defaultdict(dict)
     for file in input_files:
-        abstract = text_extraction.find_abstract(file)
-        abstracts[file.name]["length"] = len(abstract)
-        abstracts[file.name]["contents"] = abstract.replace("\n", " ")
+        try:
+            abstract = text_extraction.find_abstract(file)
+            abstracts[file.name]["length"] = len(abstract)
+            abstracts[file.name]["contents"] = abstract.replace("\n", " ")
+        except:
+            logger.error(f"Failed on {file}")
+            failures.add(file)
+            pass
     print(json.dumps(abstracts, indent=2))
 
+    if failures:
+        logger.error(f"Failures: {failures}")
