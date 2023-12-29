@@ -37,17 +37,27 @@ def find_section_index(text: str, section: str, start_idx = 0) -> int:
     """Given a block of text, find the starting index of a section with heuristics"""
 
     # Look for the section name in all caps
+    logger.debug(f"Looking for {section.upper()}")
     idx = text.find(section.upper(), start_idx)
     if idx != -1:
         return idx
     # Try to find it with spaces between each character
     for section_name in [section, section.upper()]:
         spaced_section = " ".join(section_name)
+        logger.debug(f"Looking for {section_name}")
         idx = text.find(spaced_section, start_idx)
         if idx != -1:
             return idx
     # Try to find it with a '<number>. before it'
     regex = r"^\d+\.\s*" + section + r"\s*"
+    logger.debug(f"Looking for {regex}")
+    match = re.search(regex, text[start_idx:], re.MULTILINE | re.IGNORECASE)
+    if match:
+        return match.start() + start_idx
+    
+    # If all else fails, try to find it at the end of a line in title-case
+    regex = section.title() + r"\s*\n"
+    logger.debug(f"Looking for {regex}")
     match = re.search(regex, text[start_idx:], re.MULTILINE | re.IGNORECASE)
     if match:
         return match.start() + start_idx
@@ -85,6 +95,7 @@ def _section_heading(text: str) -> str | None:
 
 def find_abstract(input_file: Path) -> str:
     """Return a portion of the article that likely contains the abstract"""
+    logger.info(f"Attempting to find abstract in {input_file}")
     paper_text = _extract_pdf_text(input_file)
     abstract_ind = find_section_index(paper_text, "abstract")
     if abstract_ind == -1:
