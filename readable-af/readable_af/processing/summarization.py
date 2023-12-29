@@ -14,7 +14,6 @@ def get_bullet_icons(bullet: Bullet, used_icons: set[int]):
     successes: list[Icon] = []
     for icon in bullet.icons:
         if nounproject.populate(icon, used_icons):
-            logger.info(f"Using icon {icon.url} for {icon}")
             used_icons.add(icon.id)
             successes.append(icon)
         if len(successes) >= 2:
