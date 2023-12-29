@@ -25,11 +25,22 @@ def get_bullet_icons(bullet: Bullet, used_icons: set[int]):
 
 
 def summarize(input_file: Path) -> Summary:
-    abstract_contents = text_extraction.find_abstract(input_file)
-    preamble_contents = text_extraction.find_preamble(input_file)
+    # Get the file extension from the input file
+    file_extension = input_file.suffix
+    if file_extension == "pdf":
+        abstract_contents = text_extraction.find_abstract(input_file)
+        preamble_contents = text_extraction.find_preamble(input_file)
+        metadata = generation.generate_metadata(preamble_contents)
+        abstract = generation.generate_abstract(abstract_contents)
+    else:
+        with open(input_file) as f:
+            contents = f.readlines()
+        title = contents[0].strip()
+        authors = contents[1].strip()
+        abstract = "\n".join(contents[2:])
+        metadata = Metadata(title=title, authors=authors.split(","), date="")
 
-    metadata = generation.generate_metadata(preamble_contents)
-    abstract = generation.generate_abstract(abstract_contents)
+
     bullets = generation.generate_bullets(abstract)
     icon_keywords = generation.generate_icon_keywords(bullets)
 
