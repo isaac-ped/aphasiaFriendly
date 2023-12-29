@@ -7,9 +7,8 @@ from ..model.request import Ctx
 
 from ..errors import AFException
 from ..external import nounproject
-from ..logger import logger
 from ..model.summary import Bullet, Icon, Metadata, Summary
-from . import generation, text_extraction
+from . import generation
 
 
 def get_bullet_icons(bullet: Bullet, used_icons: set[int]):
@@ -25,22 +24,26 @@ def get_bullet_icons(bullet: Bullet, used_icons: set[int]):
     bullet.icons = successes
 
 
-def summarize(input_file: Path) -> Summary:
+def summarize(ctx: Ctx) -> Summary:
     # Get the file extension from the input file
-    file_extension = input_file.suffix
-    if file_extension == "pdf":
-        abstract_contents = text_extraction.find_abstract(input_file)
-        preamble_contents = text_extraction.find_preamble(input_file)
-        metadata = generation.generate_metadata(preamble_contents)
-        abstract = generation.generate_abstract(abstract_contents)
+    input = ctx.input
+    if input.abstract is None:
+        assert input.file is not None
+        file_extension = input.file.suffix
+        if file_extension == "pdf":
+            raise NotImplementedError("PDF summarization not yet implemented")
+        else:
+            with open(input.file) as f:
+                contents = f.readlines()
+            title = contents[0].strip()
+            authors = contents[1].strip()
+            abstract = "\n".join(contents[2:])
+            metadata = Metadata(title=title, authors=authors.split(","), date="")
     else:
-        with open(input_file) as f:
-            contents = f.readlines()
-        title = contents[0].strip()
-        authors = contents[1].strip()
-        abstract = "\n".join(contents[2:])
-        metadata = Metadata(title=title, authors=authors.split(","), date="")
-
+        abstract = input.abstract
+        assert input.title is not None
+        assert input.authors is not None
+        metadata = Metadata(title=input.title, authors=input.authors.split(","), date="")
 
     summary = Summary(metadata=metadata, bullets=[])
     generation.generate_bullets(summary, abstract)

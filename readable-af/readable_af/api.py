@@ -12,9 +12,11 @@ RERUN_OUT_DIR = Path("./output/rerun/")
 
 def summarize(ctx: Ctx):
     """Summarize a document to pptx"""
-    assert ctx.input.file is not None
-    summary = summarization.summarize(ctx.input.file)
+    input = ctx.input
+    assert input.abstract is not None or input.file is not None
+    summary = summarization.summarize(ctx)
     if ctx.output_file is None:
+        assert ctx.input.file is not None
         ctx.output_file = (
             DEFAULT_OUT_DIR / ctx.input.file.stem / f"summary.{ctx.output_format}"
         )
