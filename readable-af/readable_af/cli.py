@@ -1,12 +1,15 @@
+from collections import defaultdict
 import copy
 import subprocess
 from pathlib import Path
+import json
 
 import click
 
 from . import api
 from .logger import logger, setup_logging
 from .model.request import Ctx
+from .processing import text_extraction
 
 
 @click.group()
@@ -76,3 +79,17 @@ def rerun(input_file: Path, out: Path, formats: list[str], do_open: bool, verbos
         if format == "pptx" and do_open:
             subprocess.call(["open", ctx.output_file])
         print(f"Generated file {ctx.output_file}")
+
+@cli.command()
+@click.argument("input_files", type=Path, nargs=-1)
+@click.option("-v", "--verbose", count=True)
+def abstract_count(input_files: list[Path], verbose: int = 0):
+    """Re-run the summary generation process on a previously summarized file."""
+    setup_logging(verbose)
+    abstracts = defaultdict(dict)
+    for file in input_files:
+        abstract = text_extraction.find_abstract(file)
+        abstracts[file.name]["length"] = len(abstract)
+        abstracts[file.name]["contents"] = abstract.replace("\n", " ")
+    print(json.dumps(abstracts, indent=2))
+

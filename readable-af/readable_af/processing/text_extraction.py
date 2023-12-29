@@ -4,13 +4,14 @@ from collections import defaultdict
 from functools import lru_cache
 from pathlib import Path
 
-import textract
+from pypdf import PdfReader
 
 from ..logger import logger
 from ..model.request import Ctx
 
 KNOWN_SECTIONS = (
     "abstract",
+    "summary",
     "introduction",
     "intro",
     "methods",
@@ -21,11 +22,36 @@ KNOWN_SECTIONS = (
     "limitations",
 )
 
+N_PAGES = 3
 
 # Cache only the most recent file
 @lru_cache(maxsize=1)
 def _extract_pdf_text(pdf_file: Path) -> str:
-    return textract.process(str(pdf_file)).decode("utf-8")
+    reader = PdfReader(pdf_file)
+    pages = []
+    for page in reader.pages[:N_PAGES]:
+        pages.append(page.extract_text())
+    return " ".join(pages)
+
+def find_section_index(text: str, section: str, start_idx = 0) -> int:
+    """Given a block of text, find the starting index of a section with heuristics"""
+
+    # Look for the section name in all caps
+    idx = text.find(section.upper(), start_idx)
+    if idx != -1:
+        return idx
+    # Try to find it with spaces between each character
+    for section_name in [section, section.upper()]:
+        spaced_section = " ".join(section_name)
+        idx = text.find(spaced_section, start_idx)
+        if idx != -1:
+            return idx
+    # Try to find it with a '<number>. before it'
+    regex = r"^\d+\.\s*" + section + r"\s*"
+    match = re.search(regex, text[start_idx:], re.MULTILINE | re.IGNORECASE)
+    if match:
+        return match.start() + start_idx
+    return -1
 
 
 def _section_heading(text: str) -> str | None:
@@ -59,11 +85,32 @@ def _section_heading(text: str) -> str | None:
 
 def find_abstract(input_file: Path) -> str:
     """Return a portion of the article that likely contains the abstract"""
+    paper_text = _extract_pdf_text(input_file)
+    abstract_ind = find_section_index(paper_text, "abstract")
+    if abstract_ind == -1:
+        logger.warn("Could not find abstract in paper. Attempting to find 'summary' instead")
+        abstract_ind = find_section_index(paper_text, "summary")
+        if abstract_ind == -1:
+            raise ValueError("Could not find abstract in paper. Sorry!")
+    # Find the next section heading after the abstract
+    next_ind = len(paper_text)
+    for section in KNOWN_SECTIONS:
+        section_ind = find_section_index(paper_text, section, abstract_ind)
+        if section_ind > abstract_ind and section_ind < next_ind:
+            next_ind = section_ind
+
+    if next_ind - abstract_ind > 4192:
+        logger.error("Abstract is impossibly long. Refusing to process!")
+        raise ValueError("Abstract is too long")
+    return paper_text[abstract_ind:next_ind]
+
     sections = find_sections(input_file)
     section_order = list(sections.keys())
     if "abstract" in sections:
         # If we find the abstract explicitly in a section, we start that point in the file
         abstract_ind = section_order.index("abstract")
+    elif "summary" in sections:
+        abstract_ind = section_order.index("summary")
     else:
         # Otherwise, we assume the abstract is near the beginning of the file
         abstract_ind = 0
@@ -73,6 +120,7 @@ def find_abstract(input_file: Path) -> str:
     guessed_text = "\n\n".join(
         sections[section] for section in section_order[abstract_ind : abstract_ind + 2]
     )
+    return guessed_text
     # If the guessed text is too long, just use the located section instead
     if len(guessed_text) > 4192:
         logger.warn(f"Broad heuristic for abstract location is too long ({len(guessed_text)} characters). Using single section instead.")
