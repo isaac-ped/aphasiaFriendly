@@ -7,6 +7,8 @@ from typing import ClassVar
 _openai_api_key_file = Path(__file__).parent.parent / ".openai-key"
 _nounproject_api_key_file = Path(__file__).parent.parent / ".nounproject-key"
 _nounproject_secret_file = Path(__file__).parent.parent / ".nounproject-secret"
+_recaptcha_site_key_file = Path(__file__).parent.parent / ".recaptcha-site-key"
+_recaptcha_secret_key_file = Path(__file__).parent.parent / ".recaptcha-secret"
 
 
 def _get_secret(env_var: str, secret_file: Path) -> str:
@@ -37,6 +39,14 @@ class Config:
     def nounproject_secret(self) -> str:
         return _get_secret("NOUNPROJECT_SECRET", _nounproject_secret_file)
 
+    @property
+    def recapcha_site_key(self) -> str:
+        return _get_secret("RECAPTCHA_SITE_KEY", _recaptcha_site_key_file)
+
+    @property
+    def recapcha_secret(self) -> str:
+        return _get_secret("RECAPTCHA_SECRET", _recaptcha_secret_key_file)
+    
     instance: ClassVar["Config| None"] = None
 
     def __post_init__(self):

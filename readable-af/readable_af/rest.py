@@ -1,9 +1,12 @@
 # save this as app.py
+import json
 from pathlib import Path
 from flask import Flask, render_template, request, send_file, Response
+import requests
 from .model.request import Ctx
 from .logger import setup_logging, logger
 from . import api
+from .config import Config
 import tempfile
 
 app = Flask(__name__)
@@ -23,13 +26,16 @@ def rate_limited(limit: RequestLimit):
 @limiter.limit('10 per 1 minute', on_breach=rate_limited) # <------------ New line
 def index():
     logger.debug("Received request to index")
-    return render_template("index.html")
+    return render_template("index.html", sitekey=Config.get().recapcha_site_key)
     
 
 @app.route("/api/summarize", methods=["POST"])
 @limiter.limit('10 per 1 minute') # <------------ New line
 def summarize_file():
     logger.debug("Received request to summarize file")
+    captcha_response = request.form['g-recaptcha-response']
+    if not is_human(captcha_response):
+        return "Sorry, you are not human!"
     abstract = request.form["abstract"].strip()
     title = request.form["title"].strip()
     authors = request.form["authors"].strip()
@@ -44,3 +50,15 @@ def summarize_file():
         api.summarize(ctx)
         assert ctx.output_file is not None
         return send_file(ctx.output_file)
+    
+def is_human(captcha_response):
+    """ Validating recaptcha response from google server
+        Returns True captcha test passed for submitted form else returns False.
+    """
+    print(captcha_response)
+    secret = Config.get().recapcha_secret
+    payload = {'response':captcha_response, 'secret':secret}
+    response = requests.post("https://www.google.com/recaptcha/api/siteverify", payload)
+    response_text = json.loads(response.text)
+    print(response_text)
+    return response_text['success']
