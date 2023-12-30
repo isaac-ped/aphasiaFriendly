@@ -22,12 +22,14 @@ def rate_limited(limit: RequestLimit):
 @app.route("/", methods=["GET"])
 @limiter.limit('10 per 1 minute', on_breach=rate_limited) # <------------ New line
 def index():
+    logger.debug("Received request to index")
     return render_template("index.html")
     
 
 @app.route("/api/summarize", methods=["POST"])
 @limiter.limit('10 per 1 minute') # <------------ New line
 def summarize_file():
+    logger.debug("Received request to summarize file")
     abstract = request.form["abstract"].strip()
     title = request.form["title"].strip()
     authors = request.form["authors"].strip()
