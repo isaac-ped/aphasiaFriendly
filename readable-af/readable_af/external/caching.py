@@ -2,7 +2,7 @@ import json
 import pickle
 from ..config import Config
 import redis
-import base64
+import hashlib
 from pathlib import Path
 
 from ..logger import logger
@@ -34,9 +34,8 @@ def localcache(fn):
     def redis_cache(*args, **kwargs) -> tuple[str, bool]:
         fn_cache = fn.__name__.strip("_")
         to_hash = _make_hashable((args, kwargs))
-        hash_value = str(hash(to_hash)).encode("utf-8")
-        h = base64.b64encode(hash_value).decode("utf-8")
-        key = f"{fn_cache}:{h}"
+        hash_value = hashlib.md5(str(to_hash).encode("utf-8")).hexdigest()
+        key = f"{fn_cache}:{hash_value}"
         info_key = f"{key}-info"
         assert rdb is not None
         logger.debug(f"Checking redis cache for key {key} and {info_key}")
@@ -62,7 +61,7 @@ def localcache(fn):
             fn_cache.mkdir(parents=True, exist_ok=True)
 
         to_hash = _make_hashable((args, kwargs))
-        h = abs(hash(to_hash))
+        h = hashlib.md5(str(to_hash).encode("utf-8")).hexdigest()
         cache_file = fn_cache / str(h)
         cache_info = cache_file.with_suffix(".json")
 

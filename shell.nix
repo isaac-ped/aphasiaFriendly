@@ -10,6 +10,7 @@ pkgs.mkShell {
 
     pkgs.flyctl
 
+    pkgs.redis
     pkgs.docker
     pkgs.buildpack
     pkgs.python312
