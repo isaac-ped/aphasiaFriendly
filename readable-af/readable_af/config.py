@@ -10,7 +10,6 @@ _nounproject_secret_file = Path(__file__).parent.parent / ".nounproject-secret"
 _recaptcha_site_key_file = Path(__file__).parent.parent / ".recaptcha-site-key"
 _recaptcha_secret_key_file = Path(__file__).parent.parent / ".recaptcha-secret"
 
-
 def _get_secret(env_var: str, secret_file: Path) -> str:
     secret = os.getenv(env_var)
     if not secret:
@@ -47,6 +46,14 @@ class Config:
     def recapcha_secret(self) -> str:
         return _get_secret("RECAPTCHA_SECRET", _recaptcha_secret_key_file)
     
+    @property
+    def redis_host(self) -> str | None:
+        return os.getenv("REDIS_URL")
+    
+    @property
+    def redis_password(self) -> str | None:
+        return os.getenv("REDIS_PASSWORD")
+
     instance: ClassVar["Config| None"] = None
 
     def __post_init__(self):

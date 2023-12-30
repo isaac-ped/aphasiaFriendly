@@ -18,6 +18,7 @@ pypdf = "^3.17.4"
 flask = "^3.0.0"
 gunicorn = "^21.2.0"
 flask-limiter = "^3.5.0"
+redis = "^5.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.3"

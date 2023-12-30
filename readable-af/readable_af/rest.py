@@ -36,6 +36,7 @@ def summarize_file():
     captcha_response = request.form['g-recaptcha-response']
     if not is_human(captcha_response):
         return "Sorry, you are not human!"
+
     abstract = request.form["abstract"].strip()
     title = request.form["title"].strip()
     authors = request.form["authors"].strip()
