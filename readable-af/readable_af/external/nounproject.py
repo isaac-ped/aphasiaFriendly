@@ -8,7 +8,7 @@ from requests_oauthlib import OAuth1
 from ..config import Config
 from ..logger import logger
 from ..model.summary import Icon
-from .caching import localcache
+from .caching import cache_af
 
 
 def populate(icon: Icon, blacklist: set[int]) -> bool:
@@ -33,7 +33,7 @@ def populate(icon: Icon, blacklist: set[int]) -> bool:
     return False
 
 
-@localcache
+@cache_af()
 def _find_icon_ids(query: str) -> list[int]:
     """Search for icons matching a keyword.
 
@@ -47,10 +47,12 @@ def _find_icon_ids(query: str) -> list[int]:
     content = json.loads(response.content.decode("utf-8"))
     if "icons" not in content:
         return []
-    return [icon["id"] for icon in content["icons"]]
+    ids = [icon["id"] for icon in content["icons"]]
+    logger.debug(f"Found the following ids: {ids}")
+    return ids
 
 
-@localcache
+@cache_af()
 def _get_icon(icon_id: int) -> bytes:
     """Given an icon URL, get the icon itself"""
     cfg = Config.get()
@@ -58,4 +60,6 @@ def _get_icon(icon_id: int) -> bytes:
     endpoint = f"https://api.thenounproject.com/v2/icon/{icon_id}/download"
     response = requests.get(endpoint, auth=auth, params={"color": "000000", "filetype": "png", "size": 100})
     content = json.loads(response.content.decode("utf-8"))
+    logger.debug(f"Got response with keys {content.keys()} from {endpoint}")
+
     return b64decode(content["base64_encoded_file"])

@@ -9,7 +9,7 @@ from openai.types.chat import ChatCompletion
 
 from ..config import Config
 from ..logger import logger
-from .caching import localcache
+from .caching import cache_af
 
 
 @cache
@@ -25,7 +25,7 @@ class Message:
     role: Literal["user", "assistant", "system"] = "user"
 
 
-@localcache
+@cache_af()
 def _completion_api(messages: list[dict], model="gpt-4-1106-preview") -> ChatCompletion:
     """Send a completion request to the OpenAI API."""
     if len(json.dumps(messages)) > 8192:
