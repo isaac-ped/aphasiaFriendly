@@ -1,3 +1,4 @@
+from base64 import b64decode
 import json
 import keyword
 
@@ -22,10 +23,10 @@ def populate(icon: Icon, blacklist: set[int]) -> bool:
         if icon_id in blacklist:
             logger.debug(f"Skipping icon {icon_id}")
             continue
-        icon_url = _get_icon_url(icon_id)
-        contents = _get_icon(icon_url)
-        icon.populate(icon_url, contents, icon_id)
-        logger.info(f"Using icon {icon_url} for {icon}")
+        # icon_url = _get_icon_url(icon_id)
+        contents = _get_icon(icon_id)
+        icon.populate("", contents, icon_id)
+        logger.info(f"Using icon {icon_id} for {icon}")
         blacklist.add(icon_id)
         return True
     logger.warning(f"Used all of the icons for keyword {keyword}. Skipping")
@@ -42,7 +43,7 @@ def _find_icon_ids(query: str) -> list[int]:
     auth = OAuth1(Config.get().nounproject_api_key, Config.get().nounproject_secret)
     endpoint = "https://api.thenounproject.com/v2/icon"
 
-    response = requests.get(endpoint, auth=auth, params={"query": query})
+    response = requests.get(endpoint, auth=auth, params={"query": query, "limit_to_public_domain": 1})
     content = json.loads(response.content.decode("utf-8"))
     if "icons" not in content:
         return []
@@ -50,22 +51,11 @@ def _find_icon_ids(query: str) -> list[int]:
 
 
 @localcache
-def _get_icon_url(icon_id: int) -> str:
-    """Given an icon ID, get the URL for the icon
-
-    :param icon_id: An ID for a nounproject icon (returned from search_icons)
-    :returns: The URL for the provided icon
-    """
+def _get_icon(icon_id: int) -> bytes:
+    """Given an icon URL, get the icon itself"""
     cfg = Config.get()
     auth = OAuth1(cfg.nounproject_api_key, cfg.nounproject_secret)
-    endpoint = f"https://api.thenounproject.com/v2/icon/{icon_id}"
-
-    response = requests.get(endpoint, auth=auth)
+    endpoint = f"https://api.thenounproject.com/v2/icon/{icon_id}/download"
+    response = requests.get(endpoint, auth=auth, params={"color": "000000", "filetype": "png", "size": 100})
     content = json.loads(response.content.decode("utf-8"))
-    return content["icon"]["thumbnail_url"]
-
-
-@localcache
-def _get_icon(icon_url: str) -> bytes:
-    """Given an icon URL, get the icon itself"""
-    return requests.get(icon_url).content
+    return b64decode(content["base64_encoded_file"])
