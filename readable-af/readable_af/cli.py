@@ -1,9 +1,16 @@
-from pathlib import Path
+from collections import defaultdict
+import copy
 import subprocess
+from pathlib import Path
+import json
+
 import click
-from .logger import setup_logging
-from .model.request import Ctx
+
+from .external import caching
 from . import api
+from .logger import logger, setup_logging
+from .model.request import Ctx
+from .processing import text_extraction
 
 
 @click.group()
@@ -14,15 +21,86 @@ def cli():
 @cli.command()
 @click.argument("input_file", type=Path)
 @click.option("--out", type=Path, help="output directory", default=None)
+@click.option(
+    "-f",
+    "--format",
+    "formats",
+    type=str,
+    help="output format",
+    default=["pptx"],
+    multiple=True,
+)
+@click.option("--cache/--no-cache", "do_cache", default=True, help="If --no-cache, ignore cache when generating")
+@click.option("--open/--no-open", "do_open", default=True, help="Open the output file after generating")
 @click.option("-v", "--verbose", count=True)
-def summarize(input_file: Path, out: Path, verbose: int = 0):
+def summarize(input_file: Path, out: Path, formats: list[str], do_open: bool,  do_cache: bool, verbose: int = 0):
     """Create an aphasia-friendly summary of an academic paper abstract."""
     setup_logging(verbose)
+    if not do_cache:
+        caching.NO_CACHE = True
+    base_ctx = Ctx()
+    base_ctx.input.file = input_file
+    base_ctx.output_dir = out
+    for format in formats:
+        ctx = copy.deepcopy(base_ctx)
+        logger.info(f"Generating summary for format {format}")
+        ctx.output_format = format
+        api.summarize(ctx)
+        assert ctx.output_file is not None
+        if format == "pptx" and do_open:
+            subprocess.call(["open", ctx.output_file])
+        print(f"Generated file {ctx.output_file}")
 
-    ctx = Ctx()
-    ctx.input.file = input_file
-    ctx.output_file = out
 
-    api.summarize(ctx)
+@cli.command()
+@click.argument("input_file", type=Path)
+@click.option("--out", type=Path, help="output directory", default=None)
+@click.option(
+    "-f",
+    "--format",
+    "formats",
+    type=str,
+    help="output format",
+    default=["pptx"],
+    multiple=True,
+)
+@click.option("--open/--no-open", "do_open", default=True, help="Open the output file after generating")
+@click.option("-v", "--verbose", count=True)
+def rerun(input_file: Path, out: Path, formats: list[str], do_open: bool, verbose: int = 0):
+    """Re-run the summary generation process on a previously summarized file."""
+    setup_logging(verbose)
 
-    subprocess.call(["open", ctx.output_file])
+    base_ctx = Ctx()
+    base_ctx.input.file = input_file
+    base_ctx.output_dir = out
+    for format in formats:
+        ctx = copy.deepcopy(base_ctx)
+        logger.info(f"Generating summary for format {format}")
+        ctx.output_format = format
+        api.rerun(ctx)
+        assert ctx.output_file is not None
+        if format == "pptx" and do_open:
+            subprocess.call(["open", ctx.output_file])
+        print(f"Generated file {ctx.output_file}")
+
+@cli.command()
+@click.argument("input_files", type=Path, nargs=-1)
+@click.option("-v", "--verbose", count=True)
+def abstract_count(input_files: list[Path], verbose: int = 0):
+    """Re-run the summary generation process on a previously summarized file."""
+    setup_logging(verbose)
+    failures = set()
+    abstracts = defaultdict(dict)
+    for file in input_files:
+        try:
+            abstract = text_extraction.find_abstract(file)
+            abstracts[file.name]["length"] = len(abstract)
+            abstracts[file.name]["contents"] = abstract.replace("\n", " ")
+        except:
+            logger.error(f"Failed on {file}")
+            failures.add(file)
+            pass
+    print(json.dumps(abstracts, indent=2))
+
+    if failures:
+        logger.error(f"Failures: {failures}")

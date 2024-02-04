@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://www.google.com/recaptcha/api.js"></script>
+        <script>
+            function onSubmit(token) {
+              document.getElementById("summary-form").submit();
+            }
+          </script>
+    </head>
+<body>
+    <form id="summary-form" action="/api/summarize" method="post">
+        <label for="title">Title:</bold></label> <br/>
+        <textarea rows="1" cols="100" type="text" id="title" name="title">Agrammatism and Paragrammatism: A Cortical Double Dissociation Revealed by Lesion-Symptom Mapping </textarea> <br/>
+        <label for="authors">Authors:</label> <br/>
+        <textarea rows="2" cols="100" id="authors" name="authors">William Matchin1*, Alexandra Basilakos1, Brielle C. Stark2, Dirk-Bart den Ouden1, Julius Fridriksson1, Gregory Hickok3" </textarea> <br/>
+        <label for="abstract">Abstract:</label> <br/>
+        <textarea  id="abstract" name="abstract" rows="20" cols="100" >The fundamental distinction of grammatical deficits in aphasia, agrammatism and paragrammatism, was made over a century ago. However, the extent to which the agrammatism/paragrammatism distinction exists independently of differences in speech fluency has not clearly been investigated. Despite much research on agrammatism, the lesion correlates of paragrammatism are essentially unknown. Lesion-symptom mapping was used to investigate the degree to which the lesion correlates of agrammatism and paragrammatism overlap or dissociate. Four expert raters assessed videos of 53 right-handed patients with aphasia following chronic left hemisphere stroke retelling the Cinderella story. Consensus discussion determined each subject’s classification with respect to grammatical deficits as Agrammatic, Paragrammatic, Both, or No Grammatical Deficit. Each subject’s lesion was manually drawn on a high- resolution MRI and warped to standard space for group analyses. Lesion-symptom mapping analyses were performed in NiiStat including lesion volume as a covariate. Secondary analyses included speech rate (words per minute) as an additional covariate. Region of interest analyses identified a double dissociation between these syndromes: damage to Broca’s area was significantly associated with agrammatism, p = 0.001 (but not paragrammatism, p = 0.930), while damage to the left posterior superior and middle temporal gyri was significantly associated with paragrammatism, p < 0.001 (but not agrammatism, p = 0.873). The same results obtained when regressing out the effect of speech rate, and non-overlapping lesion distributions between the syndromes were confirmed by uncorrected whole brain analyses. Our results support a fundamental distinction between agrammatism and paragrammatism.</textarea><br/>
+        <button class="g-recaptcha" 
+        data-sitekey="{{ sitekey }}" 
+        data-callback='onSubmit' 
+        data-action='submit'>Submit</button>
+    </form>
+</body>

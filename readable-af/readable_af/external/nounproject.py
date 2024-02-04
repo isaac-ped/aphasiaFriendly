@@ -1,25 +1,49 @@
+from base64 import b64decode
 import json
-from ..config import Config
-from requests_oauthlib import OAuth1
-from .caching import localcache
-from ..model.summary import Icon
+import keyword
+
 import requests
+from requests_oauthlib import OAuth1
+
+from ..config import Config
+from ..logger import logger
+from ..model.summary import Icon
+from .caching import cache_af
 
 
-def search(query: str, n: int) -> list[Icon]:
-    """Search for an icon matching a query. Return None if no icons are found."""
-    icon_ids = _find_icon_ids(query)
+# This is the ID for an icon on nounproject that we're using as a filler icon for the moment
+QUESTION_MARK_ID: int = 5525618
+
+def set_to_default(icon: Icon):
+    """Used if we can't find any icons for a keyword.
+    Sets the icon to the QUESTION_MARK icon with some accompanying text
+    """
+    contents = _get_icon(QUESTION_MARK_ID)
+    icon.populate("", contents, QUESTION_MARK_ID)
+
+def populate(icon: Icon, blacklist: set[int]) -> bool:
+    """Populate an icon containing a keyword with its image data.
+    :returns: True if the icon was successfully populated. False if keyword search failed.
+    """
+    icon_ids = _find_icon_ids(icon.keyword)
     if not icon_ids:
-        return []
-    icons: list[Icon] = []
-    for icon_id in icon_ids[:n]:
-        icon_url = _get_icon_url(icon_id)
-        icon = _get_icon(icon_url)
-        icons.append(Icon(query, icon_url, icon, icon_id))
-    return icons
+        logger.debug(f"Could not find any icons for keyword {icon.keyword}")
+        return False
+    for icon_id in icon_ids:
+        if icon_id in blacklist:
+            logger.debug(f"Skipping icon {icon_id}")
+            continue
+        # icon_url = _get_icon_url(icon_id)
+        contents = _get_icon(icon_id)
+        icon.populate("", contents, icon_id)
+        logger.info(f"Using icon {icon_id} for {icon}")
+        blacklist.add(icon_id)
+        return True
+    logger.warning(f"Used all of the icons for keyword {keyword}. Skipping")
+    return False
 
 
-@localcache
+@cache_af()
 def _find_icon_ids(query: str) -> list[int]:
     """Search for icons matching a keyword.
 
@@ -29,30 +53,23 @@ def _find_icon_ids(query: str) -> list[int]:
     auth = OAuth1(Config.get().nounproject_api_key, Config.get().nounproject_secret)
     endpoint = "https://api.thenounproject.com/v2/icon"
 
-    response = requests.get(endpoint, auth=auth, params={"query": query})
+    response = requests.get(endpoint, auth=auth, params={"query": query, "limit_to_public_domain": 1, "include_svg": 0})
     content = json.loads(response.content.decode("utf-8"))
     if "icons" not in content:
         return []
-    return [icon["id"] for icon in content["icons"]]
+    ids = [icon["id"] for icon in content["icons"]]
+    logger.debug(f"Found the following ids: {ids}")
+    return ids
 
 
-@localcache
-def _get_icon_url(icon_id: int) -> str:
-    """Given an icon ID, get the URL for the icon
-
-    :param icon_id: An ID for a nounproject icon (returned from search_icons)
-    :returns: The URL for the provided icon
-    """
+@cache_af()
+def _get_icon(icon_id: int) -> bytes:
+    """Given an icon URL, get the icon itself"""
     cfg = Config.get()
     auth = OAuth1(cfg.nounproject_api_key, cfg.nounproject_secret)
-    endpoint = f"https://api.thenounproject.com/v2/icon/{icon_id}"
-
-    response = requests.get(endpoint, auth=auth)
+    endpoint = f"https://api.thenounproject.com/v2/icon/{icon_id}/download"
+    response = requests.get(endpoint, auth=auth, params={"color": "000000", "filetype": "png", "size": 100})
     content = json.loads(response.content.decode("utf-8"))
-    return content["icon"]["thumbnail_url"]
+    logger.debug(f"Got response with keys {content.keys()} from {endpoint}")
 
-
-@localcache
-def _get_icon(icon_url: str) -> bytes:
-    """Given an icon URL, get the icon itself"""
-    return requests.get(icon_url).content
+    return b64decode(content["base64_encoded_file"])

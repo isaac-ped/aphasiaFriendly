@@ -1,14 +1,15 @@
-from dataclasses import dataclass
 import dataclasses
+import json
+from dataclasses import dataclass
 from functools import cache
 from typing import Literal
-from .caching import localcache
+
 from openai import OpenAI
 from openai.types.chat import ChatCompletion
 
 from ..config import Config
 from ..logger import logger
-import json
+from .caching import cache_af
 
 
 @cache
@@ -24,9 +25,11 @@ class Message:
     role: Literal["user", "assistant", "system"] = "user"
 
 
-@localcache
+@cache_af()
 def _completion_api(messages: list[dict], model="gpt-4-1106-preview") -> ChatCompletion:
     """Send a completion request to the OpenAI API."""
+    if len(json.dumps(messages)) > 8192:
+        raise ValueError("Hit arbitrary length limit! Messages must be less than 8kb")
     logger.debug(
         "Sending the following prompt: \n"
         + "\n"

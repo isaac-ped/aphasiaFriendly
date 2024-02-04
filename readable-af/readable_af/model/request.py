@@ -10,7 +10,9 @@ class Input:
     """User-provided input to a request."""
 
     file: Path | None = None
-
+    title: str | None = None
+    authors: str | None = None
+    abstract: str | None = None
 
 @dataclass
 class Ctx:
@@ -20,8 +22,9 @@ class Ctx:
     """
 
     input: Input = field(default_factory=Input)
+    output_format: str = "pptx"
     file_contents: str | None = None
-    abstract_contents: str | None = None
     preamble_contents: str | None = None
     summary: Summary | None = None
+    output_dir: Path | None = None
     output_file: Path | None = None

@@ -1,5 +1,6 @@
+import json
 from ..external import openai as oa
-from readable_af.model.summary import Bullet, Metadata
+from readable_af.model.summary import Bullet, Metadata, Summary
 from ..logger import logger
 
 MODEL = "gpt-4-1106-preview"
@@ -31,7 +32,7 @@ def generate_metadata(preamble: str) -> Metadata:
     response = oa.completion(messages, model=MODEL)
     title, authors, date = response.split("\n")
     logger.info(f"Generated the following metadata: {title=}, {authors=}, {date=}")
-    return Metadata(title, authors.split(","), date)
+    return Metadata(title.strip(), [a.strip() for a in authors.split(",")], date.strip())
 
 
 def abstract_prompt(messy_abstract: str) -> list[oa.Message]:
@@ -54,7 +55,7 @@ def generate_abstract(messy_abstract: str) -> str:
     messages = abstract_prompt(messy_abstract)
     abstract = oa.completion(messages, model=MODEL)
     logger.info(f"Generated the following asbtract: {abstract}")
-    return abstract
+    return abstract.strip()
 
 
 def summary_prompt(abstract: str) -> list[oa.Message]:
@@ -63,31 +64,50 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
             "You are an assistant that processes scientific articles into a few simple sentences "
             "that are understandable by someone that has difficulty reading. "
             "You will be passed the abstract of a scientific article and asked to summarize it. "
-            "Your summary should always produce 5 sentences of summary, with each sentence "
-            "separated from other sentences by the | character."
-            "Each sentences should be shorter than 150 characters, and should use very simple syntax and vocabulary. "
+            "Your summary should always produce 5-7 sentences of summary. "#, with each sentence "
+            #"separated from other sentences by the | character."
+            "Each sentence should be shorter than 150 characters, and should use very simple syntax and vocabulary. "
             "The words that you use should be as simple and common as possible, "
-            "and the sentences that you produce should have a flesch-kincaid score of less than 70."
-            "All messages sent to you will contain a scientific abstract, and you should return "
-            "only with the summary as specified above, without any additional text. ",
+            "while still reflecting the specific content of the abstract. "
+            "If you introduce complicated, low-frequency terms, please explicitly define them in simpler terms. "
+            "Use only those simpler terms moving forward. "
+            "Be specific about brain locations, "
+            "for example, do not say 'brain spots', but say 'temporal lobe' or 'frontal lobe'."
+            "The sentences that you produce should have a flesch-kincaid score of less than 75. "
+            "Be conservative in your statement of facts. "
+            "For example, do not say 'The brain does not', but say 'The brain may not.' "
+            "The last bullet point should summarize the abstract in one sentence. "
+            #"All messages sent to you will contain a scientific abstract, and you should return "
+            #"only with the summary as specified above, without any additional text. ",
+            "Return your response in json format, with the keys 'summary', containing a list of strings with the bullet points, " 
+            "and 'rating', containing your rating on a scale from 1-10 of how good the summary you produced seems to be. ",
             role="system",
         ),
         oa.Message(abstract),
     ]
 
 
-def generate_bullets(abstract: str) -> list[Bullet]:
+def generate_bullets(summary: Summary, abstract: str) -> None:
     prompt = summary_prompt(abstract)
-    summary = oa.completion(prompt, model=MODEL)
-    logger.info(f"Generated the following summary: {summary}")
-    return [Bullet(line) for line in summary.split("|")]
+    response = oa.completion(prompt, model=MODEL).strip()
+    if response.startswith("```json"):
+        logger.debug("Removing ```json prefix")
+        # Remove all lines starting with ````
+        response = '\n'.join([
+            line for line in response.split("\n") if not line.startswith("```")
+        ])
+    logger.info(f"Generated the following summary: {response}")
+    response=json.loads(response)
+    for entry in response["summary"]:
+        summary.bullets.append(Bullet(entry))
+    summary.rating = str(response["rating"])
 
 
 def icon_prompt(summary: str) -> list[oa.Message]:
     return [
         oa.Message(
             "You are an assistant that helps to choose apprioriate pictographic icons to accomany bullet points. "
-            "You will be provided with a list of bullet points (one per line) and you should respond with a list of EXACTLY 5 comma-separated search terms"
+            "You will be provided with a list of bullet points (one per line) and you should respond with a list of EXACTLY 10 comma-separated search terms"
             "that will be used as queries to search for icons that would demonstrate the concepts represented in the bullet point.\n"
             "Your search terms should abide by the following rules: \n "
             "- Search terms should consist of at most three words. \n"
@@ -104,7 +124,7 @@ def icon_prompt(summary: str) -> list[oa.Message]:
             "Your output should ONLY contain these keywords with the keywords for each bullet point on their own line. \n"
             "Keywords within a bullet point should be separated by a comma, and should not be in quotes. \n "
             "Within a line, keywords should be sorted in order of quality, with the best keywords first.\n\n"
-            "You MUST always output 5 search terms for EVERY line that was input, and no other text or formatting\n",
+            "You MUST always output 10 search terms for EVERY line that was input, and no other text or formatting\n",
             role="system",
         ),
         oa.Message(summary),

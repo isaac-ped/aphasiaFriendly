@@ -1,0 +1,17 @@
+Beware of R2: Simple, Unambiguous Assessment of the Prediction Accuracy of QSAR and QSPR Models
+D. L. J. Alexander,† A. Tropsha,‡ and David A. Winkler*,§,∥,⊥,#
+ABSTRACT: The statistical metrics used to characterize the external predictivity of a
+model, i.e., how well it predicts the properties of an independent test set, have
+proliferated over the past decade. This paper clarifies some apparent confusion over the
+use of the coefficient of determination, R2, as a measure of model fit and predictive
+power in QSAR and QSPR modeling. R2 (or r2) has been used in various contexts in
+the literature in conjunction with training and test data for both ordinary linear
+regression and regression through the origin as well as with linear and nonlinear
+regression models. We analyze the widely adopted model fit criteria suggested by
+Golbraikh and Tropsha (J. Mol. Graphics Modell. 2002, 20, 269−276) in a strict
+statistical manner. Shortcomings in these criteria are identified, and a clearer and
+simpler alternative method to characterize model predictivity is provided. The intent is
+not to repeat the well-documented arguments for model validation using test data but
+rather to guide the application of R2 as a model fit statistic. Examples are used to
+illustrate both correct and incorrect uses of R2. Reporting the root-mean-square error or
+equivalent measures of dispersion, which are typically of more practical importance than R2, is also encouraged, and important challenges in addressing the needs of different categories of users such as computational chemists, experimental scientists, and regulatory decision support specialists are outlined.

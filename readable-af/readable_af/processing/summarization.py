@@ -1,46 +1,96 @@
 """High-level API for summarization."""
 from pathlib import Path
+
+import yaml
+
+from ..model.request import Ctx
+
+from ..errors import AFException
 from ..external import nounproject
-from ..model.summary import Bullet, Summary
-from . import text_extraction
+from ..model.summary import Bullet, Icon, Metadata, Summary
 from . import generation
-from ..logger import logger
 
-
-def get_bullet_icons(bullet: Bullet, keywords: list[str], used_icons: set[int]):
-    for keyword in keywords:
-        if len(bullet.icons) >= 2:
-            return
-        icons = nounproject.search(keyword, 5)
-        for i, icon in enumerate(icons):
-            if icon.id not in used_icons:
-                bullet.icons.append(icon)
-                used_icons.add(icon.id)
-                break
+def get_bullet_icons(bullet: Bullet, used_icons: set[int]):
+    bullet_icons: set[int] = set()
+    successes: list[Icon] = []
+    failures: list[Icon] = []
+    for icon in bullet.icons:
+        if nounproject.populate(icon, used_icons | bullet_icons):
+            bullet_icons.add(icon.id)
+            successes.append(icon)
+        else:
+            failures.append(icon)
+        if len(successes) >= 2:
+            break
+    if len(successes) < 2:
+        # If we can't find two unique icons, try again but allow icons from earilier bullets
+        new_failures = []
+        for icon in failures:
+            if nounproject.populate(icon, bullet_icons):
+                bullet_icons.add(icon.id)
+                successes.append(icon)
             else:
-                logger.info(f"Icon {i} ({icon.id}) already used. Skipping")
+                new_failures.append(icon)
+            if len(successes) >= 2:
+                break
+        new_failures = failures
+    if len(successes) < 2:
+        # If we still can't find two unique icons, set the icons to the default
+        for icon in failures:
+            nounproject.set_to_default(icon)
+            successes.append(icon)
+            if len(successes) >= 2:
+                break
+    if len(successes) < 2:
+        raise AFException(f"Could not find enough icons for bullet '{bullet.text}'")
+    used_icons.update(bullet_icons)
+    bullet.icons = successes
 
 
-def summarize(input_file: Path) -> Summary:
-    abstract_contents = text_extraction.find_abstract(input_file)
-    preamble_contents = text_extraction.find_preamble(input_file)
+def summarize(ctx: Ctx) -> Summary:
+    # Get the file extension from the input file
+    input = ctx.input
+    if input.abstract is None:
+        assert input.file is not None
+        file_extension = input.file.suffix
+        if file_extension == "pdf":
+            raise NotImplementedError("PDF summarization not yet implemented")
+        else:
+            with open(input.file) as f:
+                contents = f.readlines()
+            title = contents[0].strip()
+            authors = contents[1].strip()
+            abstract = "\n".join(contents[2:])
+            metadata = Metadata(title=title, authors=authors.split(","), date="")
+    else:
+        abstract = input.abstract
+        assert input.title is not None
+        assert input.authors is not None
+        metadata = Metadata(title=input.title, authors=input.authors.split(","), date="")
 
-    metadata = generation.generate_metadata(preamble_contents)
-    abstract = generation.generate_abstract(abstract_contents)
-    bullets = generation.generate_bullets(abstract)
-    icon_keywords = generation.generate_icon_keywords(bullets)
+    summary = Summary(metadata=metadata, bullets=[])
+    generation.generate_bullets(summary, abstract)
+    icon_keywords = generation.generate_icon_keywords(summary.bullets)
 
     used_ids: set[int] = set()
 
-    for bullet, keywords in zip(bullets, icon_keywords):
-        get_bullet_icons(bullet, keywords, used_ids)
-        # If we couldn't get two unique icons per keyword, try again
-        # allowing us to use another icon for the same keyword
-        if len(bullet.icons) < 2:
-            logger.debug(
-                f"Got only {len(bullet.icons)} icons. Trying again to get icons for bullet"
-            )
-            get_bullet_icons(bullet, keywords, used_ids)
+    for bullet, keywords in zip(summary.bullets, icon_keywords):
+        bullet.icons = [Icon(keyword) for keyword in keywords]
+        get_bullet_icons(bullet, used_ids)
+
+    return summary
+
+
+def reload(input_file: Path) -> Summary:
+    with input_file.open() as f:
+        input = yaml.safe_load(f)
+    metadata = Metadata.fromdict(input["metadata"])
+    bullets = [Bullet.fromdict(bullet) for bullet in input["bullets"]]
+
+    used_ids: set[int] = set()
+
+    for bullet in bullets:
+        get_bullet_icons(bullet, used_ids)
 
     return Summary(
         metadata=metadata,

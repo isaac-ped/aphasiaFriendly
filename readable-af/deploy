@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+poetry run pip freeze --exclude-editable > requirements.txt
+fly deploy
