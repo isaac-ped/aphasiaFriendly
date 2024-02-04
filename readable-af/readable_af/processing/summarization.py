@@ -10,17 +10,40 @@ from ..external import nounproject
 from ..model.summary import Bullet, Icon, Metadata, Summary
 from . import generation
 
-
 def get_bullet_icons(bullet: Bullet, used_icons: set[int]):
+    bullet_icons: set[int] = set()
     successes: list[Icon] = []
+    failures: list[Icon] = []
     for icon in bullet.icons:
-        if nounproject.populate(icon, used_icons):
-            used_icons.add(icon.id)
+        if nounproject.populate(icon, used_icons | bullet_icons):
+            bullet_icons.add(icon.id)
             successes.append(icon)
+        else:
+            failures.append(icon)
         if len(successes) >= 2:
             break
-    if len(successes) != 2:
+    if len(successes) < 2:
+        # If we can't find two unique icons, try again but allow icons from earilier bullets
+        new_failures = []
+        for icon in failures:
+            if nounproject.populate(icon, bullet_icons):
+                bullet_icons.add(icon.id)
+                successes.append(icon)
+            else:
+                new_failures.append(icon)
+            if len(successes) >= 2:
+                break
+        new_failures = failures
+    if len(successes) < 2:
+        # If we still can't find two unique icons, set the icons to the default
+        for icon in failures:
+            nounproject.set_to_default(icon)
+            successes.append(icon)
+            if len(successes) >= 2:
+                break
+    if len(successes) < 2:
         raise AFException(f"Could not find enough icons for bullet '{bullet.text}'")
+    used_icons.update(bullet_icons)
     bullet.icons = successes
 
 
