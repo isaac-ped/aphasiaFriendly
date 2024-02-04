@@ -28,3 +28,4 @@ class Ctx:
     summary: Summary | None = None
     output_dir: Path | None = None
     output_file: Path | None = None
+    output_link: str | None = None

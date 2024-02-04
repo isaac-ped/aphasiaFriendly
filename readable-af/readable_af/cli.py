@@ -49,6 +49,9 @@ def summarize(input_file: Path, out: Path, formats: list[str], do_open: bool,  d
         assert ctx.output_file is not None
         if format == "pptx" and do_open:
             subprocess.call(["open", ctx.output_file])
+        if format == "gdoc" and do_open:
+            assert ctx.output_link is not None
+            subprocess.call(["open", ctx.output_link])
         print(f"Generated file {ctx.output_file}")
 
 
@@ -81,6 +84,9 @@ def rerun(input_file: Path, out: Path, formats: list[str], do_open: bool, verbos
         assert ctx.output_file is not None
         if format == "pptx" and do_open:
             subprocess.call(["open", ctx.output_file])
+        if format == "gdoc" and do_open:
+            assert ctx.output_link is not None
+            subprocess.call(["open", ctx.output_link])
         print(f"Generated file {ctx.output_file}")
 
 @cli.command()

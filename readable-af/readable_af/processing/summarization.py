@@ -5,6 +5,7 @@ import yaml
 
 from ..model.request import Ctx
 
+from ..logger import logger
 from ..errors import AFException
 from ..external import nounproject
 from ..model.summary import Bullet, Icon, Metadata, Summary

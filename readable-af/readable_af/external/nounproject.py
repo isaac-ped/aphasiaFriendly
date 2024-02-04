@@ -37,7 +37,7 @@ def populate(icon: Icon, blacklist: set[int]) -> bool:
         contents = _get_icon(icon_id)
         icon.populate("", contents, icon_id)
         logger.info(f"Using icon {icon_id} for {icon}")
-        blacklist.add(icon_id)
+        # blacklist.add(icon_id)
         return True
     logger.warning(f"Used all of the icons for keyword {keyword}. Skipping")
     return False
@@ -72,4 +72,7 @@ def _get_icon(icon_id: int) -> bytes:
     content = json.loads(response.content.decode("utf-8"))
     logger.debug(f"Got response with keys {content.keys()} from {endpoint}")
 
+    decoded = b64decode(content["base64_encoded_file"])
+    with open("icon.png", "wb") as f:
+        f.write(decoded)
     return b64decode(content["base64_encoded_file"])
