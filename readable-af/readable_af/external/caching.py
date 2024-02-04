@@ -42,6 +42,7 @@ def cache_af(version: str = ""):
             info_key = f"{key}-info"
             assert rdb is not None
             logger.debug(f"Checking redis cache for key {key} and {info_key}")
+
             if rdb.exists(info_key) and rdb.exists(key):
                 resp = rdb.get(info_key)
                 assert isinstance(resp, bytes)
@@ -84,39 +85,48 @@ def cache_af(version: str = ""):
                 json.dump(to_hash, f, indent=2)
             return cache_file, False
 
-        def wrapper(*args, **kwargs):
-            if rdb is not None:
-                c_f, is_cached = redis_cache(*args, **kwargs)
-                logger.debug(f"Cache file: {c_f}")
-                logger.debug(f"Cache exists? {is_cached}")
-                if is_cached and not NO_CACHE:
-                    resp = rdb.get(c_f)
+        def redis_cache_wrapper(*args, **kwargs):
+            assert rdb is not None
+            c_f, is_cached = redis_cache(*args, **kwargs)
+            logger.debug(f"Cache file: {c_f}")
+            logger.debug(f"Cache exists? {is_cached}")
+            if is_cached and not NO_CACHE:
+                resp = rdb.get(c_f)
+                try:
+                    assert isinstance(resp, bytes)
+                    return pickle.loads(resp)
+                except Exception as e:
+                    logger.warning(
+                        f"Error loading cache file {c_f}. Continuing without it: {e}"
+                    )
+            result = fn(*args, **kwargs)
+            rdb.set(c_f, pickle.dumps(result))
+            return result
+        
+        def file_cache_wrapper(*args, **kwargs):
+            c_f, is_cached = cache_file(*args, **kwargs)
+            logger.debug(f"Cache file: {c_f}")
+            logger.debug(f"Cache exists? {is_cached}")
+            if is_cached and not NO_CACHE:
+                with c_f.open("rb") as f:
                     try:
-                        assert isinstance(resp, bytes)
-                        return pickle.loads(resp)
+                        return pickle.load(f)
                     except Exception as e:
                         logger.warning(
                             f"Error loading cache file {c_f}. Continuing without it: {e}"
                         )
-                result = fn(*args, **kwargs)
-                rdb.set(c_f, pickle.dumps(result))
-                return result
-            else:
-                c_f, is_cached = cache_file(*args, **kwargs)
-                logger.debug(f"Cache file: {c_f}")
-                logger.debug(f"Cache exists? {is_cached}")
-                if is_cached and not NO_CACHE:
-                    with c_f.open("rb") as f:
-                        try:
-                            return pickle.load(f)
-                        except Exception as e:
-                            logger.warning(
-                                f"Error loading cache file {c_f}. Continuing without it: {e}"
-                            )
-                result = fn(*args, **kwargs)
-                with c_f.open("wb") as f:
-                    pickle.dump(result, f)
-                return result
+            result = fn(*args, **kwargs)
+            with c_f.open("wb") as f:
+                pickle.dump(result, f)
+            return result
+    
+        def wrapper(*args, **kwargs):
+            if rdb is not None:
+                try:
+                    return redis_cache_wrapper(*args, **kwargs)
+                except redis.exceptions.ResponseError as e:
+                    logger.warning(f"Redis error! Falling back to file cache. Error: {e}")
+            return file_cache_wrapper(*args, **kwargs)
 
         return wrapper
     return decorator
