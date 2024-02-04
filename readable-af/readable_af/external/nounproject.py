@@ -11,6 +11,16 @@ from ..model.summary import Icon
 from .caching import cache_af
 
 
+# This is the ID for an icon on nounproject that we're using as a filler icon for the moment
+QUESTION_MARK_ID: int = 5525618
+
+def set_to_default(icon: Icon):
+    """Used if we can't find any icons for a keyword.
+    Sets the icon to the QUESTION_MARK icon with some accompanying text
+    """
+    contents = _get_icon(QUESTION_MARK_ID)
+    icon.populate("", contents, QUESTION_MARK_ID)
+
 def populate(icon: Icon, blacklist: set[int]) -> bool:
     """Populate an icon containing a keyword with its image data.
     :returns: True if the icon was successfully populated. False if keyword search failed.
@@ -43,7 +53,7 @@ def _find_icon_ids(query: str) -> list[int]:
     auth = OAuth1(Config.get().nounproject_api_key, Config.get().nounproject_secret)
     endpoint = "https://api.thenounproject.com/v2/icon"
 
-    response = requests.get(endpoint, auth=auth, params={"query": query, "limit_to_public_domain": 1})
+    response = requests.get(endpoint, auth=auth, params={"query": query, "limit_to_public_domain": 1, "include_svg": 0})
     content = json.loads(response.content.decode("utf-8"))
     if "icons" not in content:
         return []

@@ -107,7 +107,7 @@ def icon_prompt(summary: str) -> list[oa.Message]:
     return [
         oa.Message(
             "You are an assistant that helps to choose apprioriate pictographic icons to accomany bullet points. "
-            "You will be provided with a list of bullet points (one per line) and you should respond with a list of EXACTLY 5 comma-separated search terms"
+            "You will be provided with a list of bullet points (one per line) and you should respond with a list of EXACTLY 10 comma-separated search terms"
             "that will be used as queries to search for icons that would demonstrate the concepts represented in the bullet point.\n"
             "Your search terms should abide by the following rules: \n "
             "- Search terms should consist of at most three words. \n"
@@ -124,7 +124,7 @@ def icon_prompt(summary: str) -> list[oa.Message]:
             "Your output should ONLY contain these keywords with the keywords for each bullet point on their own line. \n"
             "Keywords within a bullet point should be separated by a comma, and should not be in quotes. \n "
             "Within a line, keywords should be sorted in order of quality, with the best keywords first.\n\n"
-            "You MUST always output 5 search terms for EVERY line that was input, and no other text or formatting\n",
+            "You MUST always output 10 search terms for EVERY line that was input, and no other text or formatting\n",
             role="system",
         ),
         oa.Message(summary),
