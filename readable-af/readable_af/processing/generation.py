@@ -137,9 +137,6 @@ def generate_icon_keywords(bullets: list[Bullet]) -> list[list[str]]:
     :returns: A list of keywords for each bullet point. If no keywords are appropriate for a bullet, an empty list is returned.
     """
     prompt = icon_prompt("\n".join("*" + bullet.text for bullet in bullets))
-    return [
-        ["ok","ok"]
-    ] * 5
     icons_response = oa.completion(prompt, model=MODEL)
     logger.info(f"Generated the following icons: {icons_response}")
     return [
