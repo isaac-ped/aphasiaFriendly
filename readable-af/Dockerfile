@@ -6,4 +6,4 @@ COPY requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
 COPY readable_af /app/readable_af
 EXPOSE 8080
-CMD ["gunicorn", "readable_af.rest:app"]
+CMD ["gunicorn", "--timeout", "60", "readable_af.rest:app"]
