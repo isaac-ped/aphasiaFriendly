@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
+from typing import Any
 
 from .summary import Summary
 
@@ -22,6 +23,7 @@ class Ctx:
     """
 
     input: Input = field(default_factory=Input)
+    credentials: Any | None = None
     output_format: str = "pptx"
     file_contents: str | None = None
     preamble_contents: str | None = None

@@ -8,9 +8,10 @@ from typing import Any
 
 from ..model.request import Ctx
 from ..logger import logger
+from ..config import Config
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import yaml
@@ -26,56 +27,54 @@ from googleapiclient.http import MediaFileUpload
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/drive.file"]
 
-# The ID of a sample document.
-DOCUMENT_ID = "15r42eZ8fBQmEi40rxa5rkLPZXePih5Dvn99bLwDq57Y"
+####
+# Much of this is copied from here: https://developers.google.com/identity/protocols/oauth2/web-server#python
+####
 
 
-@cache
-def build_service() -> Any:
-    """Shows basic usage of the Docs API.
-    Prints the title of a sample document.
-    """
-    creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open("token.json", "w") as token:
-            token.write(creds.to_json())
+def credentials_to_dict(credentials)  -> dict[str, Any]:
+  return {'token': credentials.token,
+          'refresh_token': credentials.refresh_token,
+          'token_uri': credentials.token_uri,
+          'client_id': credentials.client_id,
+          'client_secret': credentials.client_secret,
+          'scopes': credentials.scopes}
 
-    try:
-        service = build("drive", "v3", credentials=creds)
-        return service
-    except HttpError as err:
-        print(err)
+def get_oauth_flow(state: Any = None) -> Flow:
+    f = Flow.from_client_secrets_file(
+        Config.get().google_client_secrets_file,
+        scopes=SCOPES,
+        state=state
+        )
+    return f
 
-@cache_af()
-def create_folder(name: str):
-    service = build_service()
+def authenticate(credentials):
+    return build(
+      "drive", "v3", credentials=credentials)
+
+_FOLDER_MIMETYPE = "application/vnd.google-apps.folder"
+
+def create_folder(service, name):
+    service.files()
+    existing = service.files().list(q=f"name='{name}' and mimeType='{_FOLDER_MIMETYPE}'").execute()
+    if existing.get("files"):
+        return existing.get("files")[0].get("id")
     file_metadata = {
         "name": name,
-        "mimeType": "application/vnd.google-apps.folder",
+        "mimeType": _FOLDER_MIMETYPE
     }
-    file = service.files().create(body=file_metadata, fields="id").execute()
-    return file.get("id")
+    folder = service.files().create(body=file_metadata, fields="id").execute()
+    return folder.get("id")
 
 class GoogleDocGenerator:
 
     @staticmethod
     def generate(summary: Summary, ctx: Ctx) -> None:
-        service = build_service()
+        assert ctx.credentials is not None
+        service = authenticate(ctx.credentials)
         # Make a temporary file to upload
         assert ctx.output_file is not None
-        folder = create_folder("Readable AF")
+        folder = create_folder(service, "Readable AF")
         ctx.output_file = ctx.output_file.with_suffix(".html")
         HtmlGenerator.generate(summary, ctx)
         logger.info(f"Wrote HTML to {ctx.output_file}")
