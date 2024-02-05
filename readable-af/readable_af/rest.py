@@ -1,4 +1,5 @@
 # save this as app.py
+from functools import cache
 import json
 import os
 from pathlib import Path
@@ -13,8 +14,9 @@ from . import api
 from .config import Config
 import tempfile
 
-IS_LOCAL = os.environ.get("HOST", "...").endswith(".local")
+IS_LOCAL = os.environ.get("FLASK_RUN_FROM_CLI", "") == "true"
 if IS_LOCAL:
+    print("RUNNING LOCALLY")
     SCHEME="http"
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 else:
@@ -39,11 +41,32 @@ def rate_limited(limit: RequestLimit):
     logger.warning(f"Rate limit exceeded: {limit.limit}")
     return Response(render_template("rate_limit.html"), 429)
 
+SAMPLE_DIR=Path(__file__).parent / "templates/samples"
+
+@cache
+def load_samples():
+    samples = []
+
+    for i, sample_input in enumerate(SAMPLE_DIR.glob("*.txt")):
+        try:
+            with open(sample_input, "r") as f:
+                lines = f.readlines()
+                samples.append({
+                    "id": i,
+                    "title": lines[0].strip(),
+                    "authors": lines[1].strip(),
+                    "abstract": "".join(lines[2:]).strip()
+                })
+        except Exception as e:
+            logger.error(f"Error loading sample {sample_input}: {e}")
+    return samples
+
 @app.route("/", methods=["GET"])
 @limiter.limit('10 per 1 minute', on_breach=rate_limited) # <------------ New line
 def index():
     logger.debug("Received request to index")
-    return render_template("index.html", sitekey=Config.get().recapcha_site_key)
+
+    return render_template("index.html", sitekey=Config.get().recapcha_site_key, samples=load_samples())
     
 
 @app.route("/authorize")

@@ -6,12 +6,33 @@
             function onSubmit(token) {
               document.getElementById("summary-form").submit();
             }
-          </script>
+
+
+            samples = {{ samples | tojson }};
+
+            function setSample (x) {
+                console.log(x.value)
+                var title = document.getElementById('title');
+                var authors = document.getElementById('authors');
+                var abstract = document.getElementById('abstract');
+                selectedSample = samples.find(sample => sample.id == x.value);
+                title.value = selectedSample['title'];
+                authors.value = selectedSample['authors'];
+                abstract.value = selectedSample['abstract'];
+            };
+
+        </script>
     </head>
 <body>
     <form id="summary-form" action="/api/summarize" method="post">
+        <label for="sample">Select a sample publication:</label>
+        <select name="sample" id="sample" onchange="setSample(this)">
+            {% for sample in samples %}
+                <option value="{{ sample.id }}">{{ sample.title }}</option>
+            {% endfor %}
+        </select></br>
         <label for="title">Title:</bold></label> <br/>
-        <textarea rows="1" cols="100" type="text" id="title" name="title">Agrammatism and Paragrammatism: A Cortical Double Dissociation Revealed by Lesion-Symptom Mapping </textarea> <br/>
+        <textarea rows="2" cols="100" type="text" id="title" name="title">Agrammatism and Paragrammatism: A Cortical Double Dissociation Revealed by Lesion-Symptom Mapping </textarea> <br/>
         <label for="authors">Authors:</label> <br/>
         <textarea rows="2" cols="100" id="authors" name="authors">William Matchin, Alexandra Basilakos, Brielle C. Stark, Dirk-Bart den Ouden, Julius Fridriksson, Gregory Hickok</textarea> <br/>
         <label for="abstract">Abstract:</label> <br/>
