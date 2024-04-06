@@ -1,0 +1,4 @@
+Convergent behavioral strategies and neural computations during vocal turn-taking across diverse species
+Arkarup Banerjee1,2 and Daniela Vallentin3,4
+Vocal exchanges between individuals are often coordinated in a temporally precise manner: one party is vocalizing while the other one is listening until the performance roles are switched. This vocal turn-taking behavior is widespread across the animal kingdom and thus provides an opportunity to study the neural circuit mechanisms from a comparative perspective. Although the physical prerequisites of the vocal tracts across animals can be different, the behavioral outcome of turn-taking is often similar with respect to vocal response timing and context-dependent adaptation. Here we review behavioral strategies of vocal turn-taking in diverse animals. Further, we highlight recent advances in studying the neural circuit mech- anisms underlying vocal production and perception.
+

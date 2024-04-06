@@ -1,0 +1,4 @@
+SPEECH PERCEPTION
+Randy L. Diehl, Andrew J. Lotto, Lori L. Holt
+This chapter focuses on one of the first steps in comprehending spo- ken language: How do listeners extract the most fundamental linguistic elements— consonants and vowels, or the distinctive features which compose them—from the acoustic signal? We begin by describing three major theoretical perspectives on the perception of speech. Then we review several lines of research that are relevant to distinguishing these perspectives. The research topics surveyed include categorical perception, phonetic context effects, learning of speech and related nonspeech cate- gories, and the relation between speech perception and production. Finally, we describe challenges facing each of the major theoretical perspectives on speech perception.
+

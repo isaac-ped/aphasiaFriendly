@@ -1,5 +1,6 @@
 import subprocess
 from pathlib import Path
+from ..model.request import Ctx
 
 from readable_af.model.summary import Summary
 
@@ -7,7 +8,9 @@ from readable_af.model.summary import Summary
 class PPTXGenerator:
 
     @staticmethod
-    def generate(summary: Summary, out: Path):
+    def generate(summary: Summary, ctx: Ctx):
+        out = ctx.output_file
+        assert out is not None
         out.parent.mkdir(exist_ok=True, parents=True)
         md_file = out.parent / "summary.md"
 

@@ -21,7 +21,7 @@ def summarize(ctx: Ctx):
             DEFAULT_OUT_DIR / ctx.input.file.stem / f"summary.{ctx.output_format}"
         )
     generator = get_generator(ctx.output_format)
-    generator.generate(summary, ctx.output_file)
+    generator.generate(summary, ctx)
 
 
 def rerun(ctx: Ctx):
@@ -35,4 +35,4 @@ def rerun(ctx: Ctx):
             stem = ctx.input.file.stem
         ctx.output_file = RERUN_OUT_DIR / stem / f"summary.{ctx.output_format}"
     generator = get_generator(ctx.output_format)
-    generator.generate(summary, ctx.output_file)
+    generator.generate(summary, ctx)

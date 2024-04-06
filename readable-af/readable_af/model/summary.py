@@ -101,6 +101,7 @@ class Metadata:
     title: str
     authors: list[str]
     date: str
+    simplified_title: str | None = None
 
     def asdict(self) -> dict[str, Any]:
         return dataclasses.asdict(self)

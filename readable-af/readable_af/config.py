@@ -9,6 +9,8 @@ _nounproject_api_key_file = Path(__file__).parent.parent / ".nounproject-key"
 _nounproject_secret_file = Path(__file__).parent.parent / ".nounproject-secret"
 _recaptcha_site_key_file = Path(__file__).parent.parent / ".recaptcha-site-key"
 _recaptcha_secret_key_file = Path(__file__).parent.parent / ".recaptcha-secret"
+_google_client_secrets_file = Path(__file__).parent.parent / "credentials.json"
+
 
 def _get_secret(env_var: str, secret_file: Path) -> str:
     secret = os.getenv(env_var)
@@ -25,6 +27,15 @@ class Config:
     n_icons: int = 3
 
     openai_org_id: str = "org-byzsYSY4AKLquKGVxYWLjnOv"
+
+    @property
+    def google_client_secrets_file(self) -> Path:
+        if not _google_client_secrets_file.exists() or _google_client_secrets_file.stat().st_size == 0:
+            secret_json = os.getenv("CREDENTIALS_JSON")
+            assert secret_json is not None
+            with _google_client_secrets_file.open("w") as f:
+                f.write(secret_json)
+        return _google_client_secrets_file
 
     @property
     def openai_api_key(self) -> str:

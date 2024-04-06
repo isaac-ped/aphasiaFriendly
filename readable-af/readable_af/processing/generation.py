@@ -77,10 +77,20 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
             "Be conservative in your statement of facts. "
             "For example, do not say 'The brain does not', but say 'The brain may not.' "
             "The last bullet point should summarize the abstract in one sentence. "
+            "The most important words in each bullet MUST be put in bold with the html <b></b> tag."
             #"All messages sent to you will contain a scientific abstract, and you should return "
             #"only with the summary as specified above, without any additional text. ",
-            "Return your response in json format, with the keys 'summary', containing a list of strings with the bullet points, " 
-            "and 'rating', containing your rating on a scale from 1-10 of how good the summary you produced seems to be. ",
+            "Return your response in json format, matching the following schema: " + """
+{
+    "summary": [
+        "bullet point 1",
+        "bullet point 2",
+        ...
+    ],
+    "title": "A new title for the paper that is short and simpler",
+    "rating": <number between 1 and 10 rating your confidence in your response>,
+}
+""",
             role="system",
         ),
         oa.Message(abstract),
@@ -98,6 +108,7 @@ def generate_bullets(summary: Summary, abstract: str) -> None:
         ])
     logger.info(f"Generated the following summary: {response}")
     response=json.loads(response)
+    summary.metadata.simplified_title = response["title"]
     for entry in response["summary"]:
         summary.bullets.append(Bullet(entry))
     summary.rating = str(response["rating"])
