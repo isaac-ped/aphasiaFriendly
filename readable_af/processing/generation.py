@@ -1,6 +1,6 @@
 import json
 from ..external import openai as oa
-from readable_af.model.summary import Bullet, Metadata, Summary
+from readable_af.model.summary import Bullet, Metadata, Summary, Icon
 from ..logger import logger
 
 MODEL = "gpt-4-1106-preview"
@@ -71,17 +71,34 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
             "Each sentence should be shorter than 150 characters, and should use very simple syntax and vocabulary. "
             "The words that you use should be as simple and common as possible, "
             "while still reflecting the specific content of the abstract. "
-            "If you introduce complicated, low-frequency terms, please explicitly define them in simpler terms. "
+            "If you introduce complicated, uncommonly used terms, please explicitly define them in simpler terms. "
             "Use only those simpler terms moving forward. "
             "Be specific about brain locations, "
             "for example, do not say 'brain spots', but say 'temporal lobe' or 'frontal lobe'."
             "The sentences that you produce should have a flesch-kincaid score of less than 75. "
+            "Avoid medical or scientific jargon as much as possible."
+            "The sentences should be grammatical - that is, do not say sentences like 'Found astrocytomas near eloquent regions."
             "Be conservative in your statement of facts. "
             "For example, do not say 'The brain does not', but say 'The brain may not.' "
             "The last bullet point should summarize the abstract in one sentence. "
-            "The most important words in each bullet MUST be put in bold with the html <b></b> tag."
-            # "All messages sent to you will contain a scientific abstract, and you should return "
-            # "only with the summary as specified above, without any additional text. ",
+            "The two or three most important words or short phrases in each bullet MUST be put in bold with the html <b></b> tag."
+            "A reader should be able to read only those words in bold and still know get the gist of what the article was saying."
+            "These important words or phrases will usually be nouns, but may also be adjectives or verbs."
+            "When there are two words separated by the word 'and', both of the words should be put in bold with the html <b></b> tag."
+            "Function words like 'and' or 'the' or numbers like 'ten' or 'three' should never be in bold."
+            "For each of the bullet points, you will also help to choose up to 5 appropriate pictographic icon keywords. "
+            "Those icon keywords, if read alone, should also give the reader a general idea of what the article was about."
+            "These icon keywords should be put in order from most to least important / informative for representing the text in the bullet point."
+            "These will be used as queries to search for icons that would demonstrate the concepts represented in that bullet point.\n"
+            "Often, these key words will represent the words you put inside the html <b></b> tag."
+            "Your search terms should abide by the following rules: \n "
+            "- Search terms should consist of at most three words. \n"
+            "- Search terms should only be very common words. \n"
+            "- Search terms should be highly imageable. For instance, use 'sick person' instead of a specific disease, or 'brain with arrow' instead of a specific brain area. \n"
+            '- Avoid using any words that have homonyms - for example, never use the word "change" because it might mean "affect" or "money". \n'
+            "- The words should be semantically related to the words in the article - for example, the word 'heartbeat' should not be used if the article is about musical beats."
+            "- If the bullet point includes negation (e.g. 'not', 'no', 'never'), you should always return a phrase like "
+            "'Crossed out' or 'X' or 'Circle with X' to reflect this.\n\n"
             "Return your response in json format, matching the following schema: "
             + """
 {
@@ -132,48 +149,8 @@ def generate_bullets(summary: Summary, abstract: str) -> None:
     response = json.loads(response)
     summary.metadata.simplified_title = response["title"]
     for entry in response["summary"]:
-        summary.bullets.append(Bullet(entry))
+        icons = []
+        for keyword in entry['icon_keywords']:
+            icons.append(Icon(keyword))
+        summary.bullets.append(Bullet(entry["text"], icons))
     summary.rating = str(response["rating"])
-
-
-def icon_prompt(summary: str) -> list[oa.Message]:
-    return [
-        oa.Message(
-            "You are an assistant that helps to choose apprioriate pictographic icons to accomany bullet points. "
-            "You will be provided with a list of bullet points (one per line) and you should respond with a list of EXACTLY 10 comma-separated search terms"
-            "that will be used as queries to search for icons that would demonstrate the concepts represented in the bullet point.\n"
-            "Your search terms should abide by the following rules: \n "
-            "- Search terms should consist of at most three words. \n"
-            "- Search terms should only be very common words. \n"
-            "- Only return phrases that have a CLEAR pictographic representation. For instance, use 'sick person' instead of a specific disease. \n"
-            '- Avoid using any words that have homographs - for example, never use the word "change" because it might mean "affect" or "money" \n'
-            "- If the bullet point includes negation (e.g. 'not', 'no', 'never'), you should always return a phrase like "
-            "'Crossed out' or 'X' or 'Circle with X' to reflect this.\n\n"
-            "The following are some examples of good phrases: \n"
-            "- To represent a staticstic getting larger, you might return 'upward arrow'. "
-            "- To represent a positive emoution you might return 'smiling faces' or 'happy people' \n"
-            "- To represent a speech disorder, you may return 'speech bubble with X'. \n"
-            "- To represent something not changing, you might return 'flat graph' or 'arrow with X'.\n\n"
-            "Your output should ONLY contain these keywords with the keywords for each bullet point on their own line. \n"
-            "Keywords within a bullet point should be separated by a comma, and should not be in quotes. \n "
-            "Within a line, keywords should be sorted in order of quality, with the best keywords first.\n\n"
-            "You MUST always output 10 search terms for EVERY line that was input, and no other text or formatting\n",
-            role="system",
-        ),
-        oa.Message(summary),
-    ]
-
-
-def generate_icon_keywords(bullets: list[Bullet]) -> list[list[str]]:
-    """For each bullet, generate a list of keywords that would be appropriate for an icon.
-
-    :returns: A list of keywords for each bullet point. If no keywords are appropriate for a bullet, an empty list is returned.
-    """
-    prompt = icon_prompt("\n".join("*" + bullet.text for bullet in bullets))
-    icons_response = oa.completion(prompt, model=MODEL)
-    logger.info(f"Generated the following icons: {icons_response}")
-    return [
-        [kw.strip() for kw in line.split(",")]
-        for line in icons_response.split("\n")
-        if line.strip()
-    ]
