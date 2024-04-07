@@ -31,6 +31,7 @@ def cache_af(version: str = ""):
         redis_host = Config.get().redis_host
         redis_password = Config.get().redis_password
         if redis_host is not None:
+            assert redis_password
             rdb = redis.Redis(
                 host=redis_host,
                 username="default",
