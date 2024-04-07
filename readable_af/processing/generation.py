@@ -118,6 +118,37 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
 """,
             role="system",
         ),
+        oa.Message("Individuals with post-stroke aphasia tend to recover their language to some extent; however, it remains challenging to reliably predict the nature and extent of recovery that will occur in the long term. The aim of this study was to quantitatively predict language outcomes in the first year of recovery from aphasia across multiple domains of language and at multiple timepoints post-stroke. We recruited 217 patients with aphasia following acute left hemisphere ischaemic or haemorrhagic stroke and evaluated their speech and language function using the Quick Aphasia Battery acutely and then acquired longitudinal follow-up data at up to three timepoints post-stroke: 1 month (n = 102), 3 months (n = 98) and 1 year (n = 74). We used support vector regression to predict language outcomes at each timepoint using acute clinical imaging data, demographic variables and initial aphasia severity as input. We found that ∼60% of the variance in long-term (1 year) aphasia severity could be predicted using these models, with detailed information about lesion location importantly contributing to these predictions. Predictions at the 1- and 3-month timepoints were somewhat less accurate based on lesion location alone, but reached comparable accuracy to predictions at the 1-year timepoint when initial aphasia severity was included in the models. Specific subdomains of language besides overall severity were predicted with varying but often similar degrees of accuracy. Our findings demonstrate the feasibility of using support vector regression models with leave-one-out cross-validation to make personalized predictions about long-term recovery from aphasia and provide a valuable neuroanatomical baseline upon which to build future models incorporating information beyond neuroanatomical and demographic predictors.", role="user"),
+        oa.Message("""{
+    "summary": [
+        {
+            "text": "<b>Aphasia</b> is a <b>problem</b> with <b>language</b> that can happen after <b>stroke</b>",
+            "icon_keywords": ["miscommunication", "stroke"]
+        },
+        {
+            "text": "Language usually <b>gets better</b>, but we can’t always <b>predict how much</b>",
+            "icon_keywords": ["prediction"]
+        },
+        {
+            "text": "We looked at a <b>big group</b> of <b>people</b> with <b>aphasia</b>, their <b>brains</b>, and their <b>language</b>",
+            "icon_keywords": ["brain location","crowd","person talking"]
+        },
+        {
+            "text": "We used <b>math</b> to try and <b>predict language</b> across the <b>first year</b> after stroke",
+            "icon_keywords": ["regression","predict"]
+        },
+        {
+            "text": "This math did a <b>pretty good job</b> making predictions (about <b>60%</b> correct)!",
+            "icon_keywords": ["predict","test","check mark"]
+        },
+        {
+            "text": "We <b>hope</b> that more math like this will <b>help</b> doctors, therapists, researchers, and people with aphasia have <b>clearer expectations</b> about <b>aphasia recovery</b>",
+            "icon_keywords": ["helping hand"]
+        }
+    ],
+    "title": "Using math and the brain to predict language recovery after stroke",
+    "rating":10
+}""", role="assistant"),
         oa.Message(abstract),
     ]
 
