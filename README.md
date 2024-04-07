@@ -21,4 +21,20 @@ from this directory to enter a shell with all dependencies installed.
 
 ## Usage
 
-From the folder [readable-af](./readable-af), run `./af` to use the CLI.
+Use the shortcut script:
+
+```bash
+./af
+```
+
+to install dependencies and access possible commands:
+
+```bash
+Usage: af [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  summarize         Create an aphasia-friendly summary
+```

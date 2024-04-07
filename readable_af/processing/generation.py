@@ -32,7 +32,9 @@ def generate_metadata(preamble: str) -> Metadata:
     response = oa.completion(messages, model=MODEL)
     title, authors, date = response.split("\n")
     logger.info(f"Generated the following metadata: {title=}, {authors=}, {date=}")
-    return Metadata(title.strip(), [a.strip() for a in authors.split(",")], date.strip())
+    return Metadata(
+        title.strip(), [a.strip() for a in authors.split(",")], date.strip()
+    )
 
 
 def abstract_prompt(messy_abstract: str) -> list[oa.Message]:
@@ -64,8 +66,8 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
             "You are an assistant that processes scientific articles into a few simple sentences "
             "that are understandable by someone that has difficulty reading. "
             "You will be passed the abstract of a scientific article and asked to summarize it. "
-            "Your summary should always produce 5-7 sentences of summary. "#, with each sentence "
-            #"separated from other sentences by the | character."
+            "Your summary should always produce 5-7 sentences of summary. "  # , with each sentence "
+            # "separated from other sentences by the | character."
             "Each sentence should be shorter than 150 characters, and should use very simple syntax and vocabulary. "
             "The words that you use should be as simple and common as possible, "
             "while still reflecting the specific content of the abstract. "
@@ -78,14 +80,20 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
             "For example, do not say 'The brain does not', but say 'The brain may not.' "
             "The last bullet point should summarize the abstract in one sentence. "
             "The most important words in each bullet MUST be put in bold with the html <b></b> tag."
-            #"All messages sent to you will contain a scientific abstract, and you should return "
-            #"only with the summary as specified above, without any additional text. ",
-            "Return your response in json format, matching the following schema: " + """
+            # "All messages sent to you will contain a scientific abstract, and you should return "
+            # "only with the summary as specified above, without any additional text. ",
+            "Return your response in json format, matching the following schema: "
+            + """
 {
     "summary": [
-        "bullet point 1",
-        "bullet point 2",
-        ...
+        {
+            "text": "bullet point 1",
+            "icon_keywords": ["keyword1", "keyword2", ...]
+        },
+        {
+            "text": "bullet point 2",
+            "icon_keywords": ["keyword1", "keyword2", ...]
+        }
     ],
     "title": "A new title for the paper that is short and simpler",
     "rating": <number between 1 and 10 rating your confidence in your response>,
@@ -97,17 +105,31 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
     ]
 
 
+def just_run_summary(abstract: str) -> dict:
+    prompt = summary_prompt(abstract)
+    response = oa.completion(prompt, model=MODEL).strip()
+    if response.startswith("```json"):
+        logger.debug("Removing ```json prefix")
+        # Remove all lines starting with ````
+        response = "\n".join(
+            [line for line in response.split("\n") if not line.startswith("```")]
+        )
+    logger.info(f"Generated the following summary: {response}")
+    response = json.loads(response)
+    return response
+
+
 def generate_bullets(summary: Summary, abstract: str) -> None:
     prompt = summary_prompt(abstract)
     response = oa.completion(prompt, model=MODEL).strip()
     if response.startswith("```json"):
         logger.debug("Removing ```json prefix")
         # Remove all lines starting with ````
-        response = '\n'.join([
-            line for line in response.split("\n") if not line.startswith("```")
-        ])
+        response = "\n".join(
+            [line for line in response.split("\n") if not line.startswith("```")]
+        )
     logger.info(f"Generated the following summary: {response}")
-    response=json.loads(response)
+    response = json.loads(response)
     summary.metadata.simplified_title = response["title"]
     for entry in response["summary"]:
         summary.bullets.append(Bullet(entry))
