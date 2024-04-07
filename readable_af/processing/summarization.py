@@ -71,12 +71,10 @@ def summarize(ctx: Ctx) -> Summary:
 
     summary = Summary(metadata=metadata, bullets=[])
     generation.generate_bullets(summary, abstract)
-    icon_keywords = generation.generate_icon_keywords(summary.bullets)
-
+    # icon_keywords = generation.generate_icon_keywords(summary.bullets)
     used_ids: set[int] = set()
 
-    for bullet, keywords in zip(summary.bullets, icon_keywords):
-        bullet.icons = [Icon(keyword) for keyword in keywords]
+    for bullet in summary.bullets:
         get_bullet_icons(bullet, used_ids)
 
     return summary
