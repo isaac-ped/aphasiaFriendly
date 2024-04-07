@@ -9,7 +9,8 @@ from ..logger import logger
 
 CACHE_DIR = Path(__file__).parent.parent.parent / ".cache"
 
-NO_CACHE=False
+NO_CACHE = False
+
 
 def _make_hashable(x):
     if isinstance(x, (list, tuple)):
@@ -25,11 +26,18 @@ def cache_af(version: str = ""):
     Results are either cached locally or in redis, depending on the configuration.
     The optional "version" string here can be used to invalidate the cache for a given function.
     """
+
     def decorator(fn):
         redis_host = Config.get().redis_host
         redis_password = Config.get().redis_password
         if redis_host is not None:
-            rdb = redis.Redis(host=redis_host, username="default", password=redis_password, port=6379, db=0)
+            rdb = redis.Redis(
+                host=redis_host,
+                username="default",
+                password=redis_password,
+                port=6379,
+                db=0,
+            )
         else:
             rdb = None
 
@@ -47,7 +55,7 @@ def cache_af(version: str = ""):
                 resp = rdb.get(info_key)
                 assert isinstance(resp, bytes)
                 resp = resp.decode("utf-8")
-                info = _make_hashable(json.loads(resp)) 
+                info = _make_hashable(json.loads(resp))
                 if info == to_hash:
                     logger.debug("Info matches")
                     return key, True
@@ -56,8 +64,6 @@ def cache_af(version: str = ""):
                 logger.warning("Got: %s", info)
             rdb.set(info_key, json.dumps(to_hash))
             return key, False
-            
-
 
         def cache_file(*args, **kwargs) -> tuple[Path, bool]:
             kwargs["__version__"] = version
@@ -77,7 +83,9 @@ def cache_af(version: str = ""):
                     if info == to_hash:
                         logger.debug("Info matches")
                         return cache_file, True
-                    logger.warning("Something weird happened. Cache info doesn't match.")
+                    logger.warning(
+                        "Something weird happened. Cache info doesn't match."
+                    )
                     logger.warning("Expected: %s", to_hash)
                     logger.warning("Got: %s", info)
 
@@ -102,7 +110,7 @@ def cache_af(version: str = ""):
             result = fn(*args, **kwargs)
             rdb.set(c_f, pickle.dumps(result))
             return result
-        
+
         def file_cache_wrapper(*args, **kwargs):
             c_f, is_cached = cache_file(*args, **kwargs)
             logger.debug(f"Cache file: {c_f}")
@@ -119,14 +127,17 @@ def cache_af(version: str = ""):
             with c_f.open("wb") as f:
                 pickle.dump(result, f)
             return result
-    
+
         def wrapper(*args, **kwargs):
             if rdb is not None:
                 try:
                     return redis_cache_wrapper(*args, **kwargs)
-                except redis.exceptions.ResponseError as e:
-                    logger.warning(f"Redis error! Falling back to file cache. Error: {e}")
+                except redis.ResponseError as e:
+                    logger.warning(
+                        f"Redis error! Falling back to file cache. Error: {e}"
+                    )
             return file_cache_wrapper(*args, **kwargs)
 
         return wrapper
+
     return decorator
