@@ -28,8 +28,9 @@ class Message:
 @cache_af()
 def _completion_api(messages: list[dict], model="gpt-4-1106-preview") -> ChatCompletion:
     """Send a completion request to the OpenAI API."""
-    if len(json.dumps(messages)) > 8192:
-        raise ValueError("Hit arbitrary length limit! Messages must be less than 8kb")
+    print(len(json.dumps(messages)))
+    if len(json.dumps(messages)) > 16384:
+        raise ValueError("Hit arbitrary length limit! Messages must be less than 16kb")
     logger.debug(
         "Sending the following prompt: \n"
         + "\n"
