@@ -26,7 +26,10 @@ def cache_af(version: str = "", verify_fn=None):
     """A decorator to cache the results of a function call locally.
 
     Results are either cached locally or in redis, depending on the configuration.
-    The optional "version" string here can be used to invalidate the cache for a given function.
+    :param version: can be used to invalidate the cache for a given function.
+    :param verify_fn: If provided, this function will be called on results
+           falsy results will never be cached.
+
     """
 
     def decorator(fn):
