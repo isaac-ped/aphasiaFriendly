@@ -5,6 +5,8 @@ pkgs.mkShell {
 
     pkgs.flyctl
 
+    pkgs.nodejs-slim # For use in vscode's pylance
+
     pkgs.redis
     pkgs.docker
     pkgs.buildpack

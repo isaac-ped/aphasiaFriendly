@@ -1,4 +1,5 @@
 from base64 import b64decode
+import copy
 import json
 import keyword
 
@@ -14,12 +15,14 @@ from .caching import cache_af
 # This is the ID for an icon on nounproject that we're using as a filler icon for the moment
 QUESTION_MARK_ID: int = 5525618
 
+
 def set_to_default(icon: Icon):
     """Used if we can't find any icons for a keyword.
     Sets the icon to the QUESTION_MARK icon with some accompanying text
     """
     contents = _get_icon(QUESTION_MARK_ID)
     icon.populate("", contents, QUESTION_MARK_ID)
+
 
 def populate(icon: Icon, blacklist: set[int]) -> bool:
     """Populate an icon containing a keyword with its image data.
@@ -33,8 +36,12 @@ def populate(icon: Icon, blacklist: set[int]) -> bool:
         if icon_id in blacklist:
             logger.debug(f"Skipping icon {icon_id}")
             continue
+        logger.info("Fetching icon %s for %s", icon_id, icon.keyword)
         # icon_url = _get_icon_url(icon_id)
         contents = _get_icon(icon_id)
+        if contents is None:
+            blacklist.add(icon_id)
+            continue
         icon.populate("", contents, icon_id)
         logger.info(f"Using icon {icon_id} for {icon}")
         # blacklist.add(icon_id)
@@ -43,7 +50,7 @@ def populate(icon: Icon, blacklist: set[int]) -> bool:
     return False
 
 
-@cache_af()
+@cache_af(version="1")
 def _find_icon_ids(query: str) -> list[int]:
     """Search for icons matching a keyword.
 
@@ -53,7 +60,11 @@ def _find_icon_ids(query: str) -> list[int]:
     auth = OAuth1(Config.get().nounproject_api_key, Config.get().nounproject_secret)
     endpoint = "https://api.thenounproject.com/v2/icon"
 
-    response = requests.get(endpoint, auth=auth, params={"query": query, "limit_to_public_domain": 1, "include_svg": 0})
+    response = requests.get(
+        endpoint,
+        auth=auth,
+        params={"query": query, "limit_to_public_domain": 1, "include_svg": 0},
+    )
     content = json.loads(response.content.decode("utf-8"))
     if "icons" not in content:
         return []
@@ -62,17 +73,24 @@ def _find_icon_ids(query: str) -> list[int]:
     return ids
 
 
-@cache_af()
-def _get_icon(icon_id: int) -> bytes:
+@cache_af(version="1", verify_fn=lambda x: x is not None)
+def _get_icon(icon_id: int) -> bytes | None:
     """Given an icon URL, get the icon itself"""
     cfg = Config.get()
     auth = OAuth1(cfg.nounproject_api_key, cfg.nounproject_secret)
     endpoint = f"https://api.thenounproject.com/v2/icon/{icon_id}/download"
-    response = requests.get(endpoint, auth=auth, params={"color": "000000", "filetype": "png", "size": 100})
+    response = requests.get(
+        endpoint, auth=auth, params={"color": "000000", "filetype": "png", "size": 100}
+    )
     content = json.loads(response.content.decode("utf-8"))
     logger.debug(f"Got response with keys {content.keys()} from {endpoint}")
+    dbg = copy.deepcopy(content)
+    dbg["base64_encoded_file"] = "..."
+    logger.debug(f"Response: {dbg}")
+    if "base64_encoded_file" not in content:
+        return None
 
-    decoded = b64decode(content["base64_encoded_file"])
-    with open("icon.png", "wb") as f:
-        f.write(decoded)
+    # decoded = b64decode(content["base64_encoded_file"])
+    # with open("icon.png", "wb") as f:
+    #     f.write(decoded)
     return b64decode(content["base64_encoded_file"])

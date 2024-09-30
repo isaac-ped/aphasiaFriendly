@@ -1,4 +1,5 @@
 """High-level API for summarization."""
+
 from pathlib import Path
 
 import yaml
@@ -10,6 +11,7 @@ from ..errors import AFException
 from ..external import nounproject
 from ..model.summary import Bullet, Icon, Metadata, Summary
 from . import generation
+
 
 def get_bullet_icons(bullet: Bullet, used_icons: set[int]):
     bullet_icons: set[int] = set()
@@ -35,15 +37,6 @@ def get_bullet_icons(bullet: Bullet, used_icons: set[int]):
             if len(successes) >= 2:
                 break
         new_failures = failures
-    if len(successes) < 2:
-        # If we still can't find two unique icons, set the icons to the default
-        for icon in failures:
-            nounproject.set_to_default(icon)
-            successes.append(icon)
-            if len(successes) >= 2:
-                break
-    if len(successes) < 2:
-        raise AFException(f"Could not find enough icons for bullet '{bullet.text}'")
     used_icons.update(bullet_icons)
     bullet.icons = successes
 
@@ -67,7 +60,9 @@ def summarize(ctx: Ctx) -> Summary:
         abstract = input.abstract
         assert input.title is not None
         assert input.authors is not None
-        metadata = Metadata(title=input.title, authors=input.authors.split(","), date="")
+        metadata = Metadata(
+            title=input.title, authors=input.authors.split(","), date=""
+        )
 
     summary = Summary(metadata=metadata, bullets=[])
     generation.generate_bullets(summary, abstract)
