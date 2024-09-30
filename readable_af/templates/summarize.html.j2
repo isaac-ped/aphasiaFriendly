@@ -13,6 +13,13 @@
 <script src="https://www.google.com/recaptcha/api.js"></script>
 <script>
     function onSubmit(token) {
+        var f = document.forms["summary-form"].elements;
+        for (var i = 0; i < f.length; i++) {
+            if (f[i].value.length == 0 && f[i].required) {
+                alert("Please enter a value for " + f[i].name + " to continue.");
+                return false;
+            }
+        }
         document.getElementById("summary-form").submit();
     }
 
@@ -34,6 +41,7 @@
 {% endblock%}
 {% block body %}
 <form id="summary-form" action="/api/summarize" method="post">
+    <p> Please enter information about your publication, or choose a sample from the list below </p>
     <label for="sample">Select a sample publication:</label>
     <select name="sample" id="sample" onchange="setSample(this)">
         {% for sample in samples %}
