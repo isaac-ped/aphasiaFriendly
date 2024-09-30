@@ -3,7 +3,7 @@ from ..external import openai as oa
 from readable_af.model.summary import Bullet, Metadata, Summary, Icon
 from ..logger import logger
 
-MODEL = "gpt-4-1106-preview"
+MODEL = "gpt-4o-2024-08-06"
 
 
 def metadata_prompt(preamble: str) -> list[oa.Message]:
@@ -66,51 +66,48 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
             "You are an assistant that processes scientific articles into a few simple sentences "
             "that are understandable by someone that has difficulty reading. "
             "You will be passed the abstract of a scientific article and asked to summarize it. "
-            "Your summary should always produce 5-7 sentences of summary. "  # , with each sentence "
+            "Your summary should produce 4-7 sentences of summary. "  # , with each sentence "
             # "separated from other sentences by the | character."
             "Each sentence should be shorter than 150 characters, and should use very simple syntax and vocabulary. "
             "The words that you use should be as simple and common as possible, "
-            "while still reflecting the specific content of the abstract. "
-            "If you introduce complicated, uncommonly used terms, please explicitly define them in simpler terms. "
+            "while reflecting the specific content of the abstract. "
+            "If you introduce complex terms, please explicitly define them in simpler terms. "
             "Use only those simpler terms moving forward. "
             "Be specific about brain locations, "
-            "for example, do not say 'brain spots', but say 'temporal lobe' or 'frontal lobe'."
+            "for example, do not say 'brain spots', but say 'temporal lobe' or 'frontal lobe'. "
             "The sentences that you produce should have a flesch-kincaid score of less than 75. "
-            "Avoid medical or scientific jargon as much as possible."
-            "The sentences should be grammatical - that is, do not say sentences like 'Found astrocytomas near eloquent regions."
-            "Be conservative in your statement of facts. "
-            "For example, do not say 'The brain does not', but say 'The brain may not.' "
-            "The last bullet point should summarize the abstract in one sentence. "
-            "The two or three most important words or short phrases in each bullet MUST be put in bold with the html <b></b> tag."
-            "A reader should be able to read only those words in bold and still know get the gist of what the article was saying."
-            "These important words or phrases will usually be nouns, but may also be adjectives or verbs."
-            "When there are two words separated by the word 'and', both of the words should be put in bold with the html <b></b> tag."
-            "Function words like 'and' or 'the' or numbers like 'ten' or 'three' should never be in bold."
-            "For each of the bullet points, you will also help to choose up to 5 appropriate pictographic icon keywords. "
-            "Those icon keywords, if read alone, should also give the reader a general idea of what the article was about."
-            "These icon keywords should be put in order from most to least important / informative for representing the text in the bullet point."
-            "These will be used as queries to search for icons that would demonstrate the concepts represented in that bullet point.\n"
-            "Often, these key words will represent the words you put inside the html <b></b> tag."
-            "Your search terms should abide by the following rules: \n "
-            "- Search terms should consist of at most three words. \n"
-            "- Search terms should only be very common words. \n"
-            "- Search terms should be highly imageable. For instance, use 'sick person' instead of a specific disease, or 'brain with arrow' instead of a specific brain area. \n"
-            '- Avoid using any words that have homonyms - for example, never use the word "change" because it might mean "affect" or "money". \n'
-            "- The words should be semantically related to the words in the article - for example, the word 'heartbeat' should not be used if the article is about musical beats."
-            "- If the bullet point includes negation (e.g. 'not', 'no', 'never'), you should always return a phrase like "
-            "'Crossed out' or 'X' or 'Circle with X' to reflect this.\n\n"
-            "Return your response in json format, matching the following schema: "
+            # "Avoid medical or scientific jargon as much as possible. "
+            # "The sentences should be grammatical - that is, do not say sentences like 'Found astrocytomas near eloquent regions. "
+            # "Be conservative in your statement of facts. "
+            # "For example, do not say 'The brain does not', but say 'The brain may not.' "
+            # "The last bullet point should summarize the abstract in one sentence. "
+            "The two or three most important words or short phrases in each bullet MUST be put in bold with the html <b></b> tag. "
+            "A reader should be able to read only those words in bold and still know get the gist of what the article was saying. "
+            # "These important words or phrases will usually be nouns, but may also be adjectives or verbs. "
+            # "When there are two words separated by the word 'and', both of the words should be put in bold with the html <b></b> tag. "
+            # "Function words like 'and' or 'the' or numbers like 'ten' or 'three' should never be in bold. "
+            "For each of the bullet points, you will also choose 0-3 appropriate pictographic icon keywords. "
+            "These icon keywords, if viewed as their most likely picographic representation, "
+            "should also give the reader a general idea of what the article was about. "
+            "These icon keywords should be put in order from most to least important / informative for representing the text in the bullet point. "
+            # "These will be used as queries to search for icons that would demonstrate the concepts represented in that bullet point. "
+            # "Often, these key words will represent the words you put inside the html <b></b> tag. "
+            # "Your search terms should abide by the following rules: \n "
+            # "- Search terms should consist of at most three words. \n"
+            # "- Search terms should only be very common words. \n"
+            # "- Search terms should be highly imageable. For instance, use 'sick person' instead of a specific disease, or 'brain with arrow' instead of a specific brain area. \n"
+            # '- Avoid using any words that have homonyms - for example, never use the word "change" because it might mean "affect" or "money". \n'
+            # "- The words should be semantically related to the words in the article - for example, the word 'heartbeat' should not be used if the article is about musical beats.\n"
+            # "- If the bullet point includes negation (e.g. 'not', 'no', 'never'), you should always return a phrase like\n"
+            # "'Crossed out' or 'X' to reflect this.\n\n"
+            "Return your response in json format, matching the following schema: \n"
             + """
 {
     "summary": [
         {
-            "text": "bullet point 1",
-            "icon_keywords": ["keyword1", "keyword2", ...]
+            "text": "...",
+            "icon_keywords": [ ... ]
         },
-        {
-            "text": "bullet point 2",
-            "icon_keywords": ["keyword1", "keyword2", ...]
-        }
     ],
     "title": "A new title for the paper that is short and simpler",
     "rating": <number between 1 and 10 rating your confidence in your response>,
@@ -118,8 +115,19 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
 """,
             role="system",
         ),
-        oa.Message("Individuals with post-stroke aphasia tend to recover their language to some extent; however, it remains challenging to reliably predict the nature and extent of recovery that will occur in the long term. The aim of this study was to quantitatively predict language outcomes in the first year of recovery from aphasia across multiple domains of language and at multiple timepoints post-stroke. We recruited 217 patients with aphasia following acute left hemisphere ischaemic or haemorrhagic stroke and evaluated their speech and language function using the Quick Aphasia Battery acutely and then acquired longitudinal follow-up data at up to three timepoints post-stroke: 1 month (n = 102), 3 months (n = 98) and 1 year (n = 74). We used support vector regression to predict language outcomes at each timepoint using acute clinical imaging data, demographic variables and initial aphasia severity as input. We found that ∼60% of the variance in long-term (1 year) aphasia severity could be predicted using these models, with detailed information about lesion location importantly contributing to these predictions. Predictions at the 1- and 3-month timepoints were somewhat less accurate based on lesion location alone, but reached comparable accuracy to predictions at the 1-year timepoint when initial aphasia severity was included in the models. Specific subdomains of language besides overall severity were predicted with varying but often similar degrees of accuracy. Our findings demonstrate the feasibility of using support vector regression models with leave-one-out cross-validation to make personalized predictions about long-term recovery from aphasia and provide a valuable neuroanatomical baseline upon which to build future models incorporating information beyond neuroanatomical and demographic predictors.", role="user"),
-        oa.Message("""{
+        oa.Message(
+            "Individuals with post-stroke aphasia tend to recover their language to some extent; however, it remains challenging to reliably predict the nature and extent of recovery that will occur in the long term. "
+            "The aim of this study was to quantitatively predict language outcomes in the first year of recovery from aphasia across multiple domains of language and at multiple timepoints post-stroke. "
+            "We recruited 217 patients with aphasia following acute left hemisphere ischaemic or haemorrhagic stroke and evaluated their speech and language function using the Quick Aphasia Battery acutely and then acquired longitudinal follow-up data at up to three timepoints post-stroke: 1 month (n = 102), 3 months (n = 98) and 1 year (n = 74). "
+            "We used support vector regression to predict language outcomes at each timepoint using acute clinical imaging data, demographic variables and initial aphasia severity as input. "
+            "We found that ∼60% of the variance in long-term (1 year) aphasia severity could be predicted using these models, with detailed information about lesion location importantly contributing to these predictions. "
+            "Predictions at the 1- and 3-month timepoints were somewhat less accurate based on lesion location alone, but reached comparable accuracy to predictions at the 1-year timepoint when initial aphasia severity was included in the models. "
+            "Specific subdomains of language besides overall severity were predicted with varying but often similar degrees of accuracy. "
+            "Our findings demonstrate the feasibility of using support vector regression models with leave-one-out cross-validation to make personalized predictions about long-term recovery from aphasia and provide a valuable neuroanatomical baseline upon which to build future models incorporating information beyond neuroanatomical and demographic predictors.",
+            role="user",
+        ),
+        oa.Message(
+            """{
     "summary": [
         {
             "text": "<b>Aphasia</b> is a <b>problem</b> with <b>language</b> that can happen after <b>stroke</b>",
@@ -131,7 +139,7 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
         },
         {
             "text": "We looked at a <b>big group</b> of <b>people</b> with <b>aphasia</b>, their <b>brains</b>, and their <b>language</b>",
-            "icon_keywords": ["brain location","crowd","person talking"]
+            "icon_keywords": ["brain","crowd","person talking"]
         },
         {
             "text": "We used <b>math</b> to try and <b>predict language</b> across the <b>first year</b> after stroke",
@@ -143,12 +151,14 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
         },
         {
             "text": "We <b>hope</b> that more math like this will <b>help</b> doctors, therapists, researchers, and people with aphasia have <b>clearer expectations</b> about <b>aphasia recovery</b>",
-            "icon_keywords": ["helping hand"]
+            "icon_keywords": []
         }
     ],
     "title": "Using math and the brain to predict language recovery after stroke",
     "rating":10
-}""", role="assistant"),
+}""",
+            role="assistant",
+        ),
         oa.Message(abstract),
     ]
 
@@ -181,7 +191,7 @@ def generate_bullets(summary: Summary, abstract: str) -> None:
     summary.metadata.simplified_title = response["title"]
     for entry in response["summary"]:
         icons = []
-        for keyword in entry['icon_keywords']:
+        for keyword in entry["icon_keywords"]:
             icons.append(Icon(keyword))
         summary.bullets.append(Bullet(entry["text"], icons))
     summary.rating = str(response["rating"])

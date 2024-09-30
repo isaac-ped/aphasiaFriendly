@@ -1,5 +1,7 @@
 import json
 import pickle
+
+from rsa import verify
 from ..config import Config
 import redis
 import hashlib
@@ -20,7 +22,7 @@ def _make_hashable(x):
     return x
 
 
-def cache_af(version: str = ""):
+def cache_af(version: str = "", verify_fn=None):
     """A decorator to cache the results of a function call locally.
 
     Results are either cached locally or in redis, depending on the configuration.
@@ -103,6 +105,12 @@ def cache_af(version: str = ""):
                 resp = rdb.get(c_f)
                 try:
                     assert isinstance(resp, bytes)
+                    loaded = pickle.loads(resp)
+                    if verify_fn is not None:
+                        if not verify_fn(loaded):
+                            reran = fn(*args, **kwargs)
+                            rdb.set(c_f, pickle.dumps(reran))
+                            return reran
                     return pickle.loads(resp)
                 except Exception as e:
                     logger.warning(

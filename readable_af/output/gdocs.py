@@ -4,6 +4,8 @@ from ..model.request import Ctx
 from ..logger import logger
 from ..config import Config
 from google_auth_oauthlib.flow import Flow
+from google.oauth2.credentials import Credentials
+import flask
 from googleapiclient.discovery import build
 
 
@@ -11,6 +13,7 @@ from .html import HtmlGenerator
 
 from ..model.summary import Summary
 from googleapiclient.http import MediaFileUpload
+from google.auth.transport.requests import Request
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/drive.file"]
@@ -18,6 +21,20 @@ SCOPES = ["https://www.googleapis.com/auth/drive.file"]
 ####
 # Much of this is copied from here: https://developers.google.com/identity/protocols/oauth2/web-server#python
 ####
+
+
+def get_credentials() -> Credentials | None:
+    if "credentials" not in flask.session:
+        return None
+
+    credentials = Credentials(**flask.session["credentials"])
+    if credentials.valid:
+        return credentials
+    elif credentials.expired and credentials.refresh_token:
+        credentials.refresh(Request())
+        if credentials.valid:
+            return credentials
+    return None
 
 
 def credentials_to_dict(credentials) -> dict[str, Any]:

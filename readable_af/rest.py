@@ -3,7 +3,16 @@ from functools import cache
 import json
 import os
 from pathlib import Path
-from flask import Flask, render_template, request, send_file, Response
+from traceback import print_stack
+from flask import (
+    Flask,
+    render_template,
+    request,
+    send_file,
+    Response,
+    flash,
+    stream_with_context,
+)
 import flask
 import requests
 from google.oauth2.credentials import Credentials
@@ -71,16 +80,95 @@ def load_samples():
 @app.route("/", methods=["GET"])
 @limiter.limit("10 per 1 minute", on_breach=rate_limited)  # <------------ New line
 def index():
-    logger.debug("Received request to index")
-
     return render_template(
-        "index.html", sitekey=Config.get().recapcha_site_key, samples=load_samples()
+        "index.html.j2",
+        sitekey=Config.get().recapcha_site_key,
+        authenticated=gdocs.get_credentials(),
     )
+
+
+@app.route("/summarize", methods=["GET"])
+@limiter.limit("10 per 1 minute", on_breach=rate_limited)  # <------------ New line
+def summarize():
+
+    if not gdocs.get_credentials():
+        flash("Please authenticate with Google before continuing.")
+        return flask.redirect(flask.url_for("index"))
+    return render_template(
+        "summarize.html.j2",
+        sitekey=Config.get().recapcha_site_key,
+        samples=load_samples(),
+    )
+
+
+@app.route("/api/summarize", methods=["GET", "POST"])
+@limiter.limit("10 per 1 minute")  # <------------ New line
+def summarize_file():
+    credentials = gdocs.get_credentials()
+    if not credentials:
+        flash("Sorry, your authentication with google has expired. Please log in again")
+        return flask.redirect(flask.url_for("authorize"))
+
+    if "g-recaptcha-response" not in request.form:
+        return "Sorry, you are not human!"
+
+    captcha_response = request.form["g-recaptcha-response"]
+    if not is_human(captcha_response):
+        return "Sorry, you are not human!"
+
+    abstract = request.form["abstract"]
+    title = request.form["title"]
+    authors = request.form["authors"]
+
+    @stream_with_context
+    def stream_summary_output():
+        """Streamable, so that we can render the page and then add the output link to the page once it's done"""
+        yield render_template("result.html.j2")
+
+        try:
+            ctx = Ctx()
+            ctx.credentials = credentials
+            ctx.input.abstract = abstract
+            ctx.input.authors = authors
+            ctx.input.title = title
+            ctx.output_format = "gdoc"
+            with tempfile.TemporaryDirectory() as tmp_out:
+                ctx.output_file = Path(tmp_out) / "summary"
+                api.summarize(ctx)
+                assert ctx.output_link is not None
+
+            yield f"""
+            <script>
+                document.getElementById("progress").innerHTML = "Summary generated! Click <a href='{ctx.output_link}'>here</a> to view it"
+            </script>
+            """
+        except Exception as e:
+            logger.error(f"Error summarizing: {e} - {print_stack()}")
+            yield f"""
+            <script>
+                document.getElementById("progress").innerHTML = "Sorry! We appear to have run into an error: {e} <br/> Please try again later"
+            </script>
+            """
+
+    return Response(stream_summary_output())
+
+
+def is_human(captcha_response):
+    """Validating recaptcha response from google server
+    Returns True captcha test passed for submitted form else returns False.
+    """
+    print(captcha_response)
+    secret = Config.get().recapcha_secret
+    payload = {"response": captcha_response, "secret": secret}
+    response = requests.post("https://www.google.com/recaptcha/api/siteverify", payload)
+    response_text = json.loads(response.text)
+    print(response_text)
+    return response_text["success"]
 
 
 @app.route("/authorize")
 def authorize():
-    logger.debug("Request to oauthcallback")
+    logger.debug("Request to /authorize")
     flow = gdocs.get_oauth_flow()
     flow.redirect_uri = flask.url_for("oauthcallback", _external=True, _scheme=SCHEME)
     logger.debug(f"Setting redirect_uri to {flow.redirect_uri}")
@@ -101,79 +189,27 @@ def authorize():
 
 @app.route("/oauthcallback")
 def oauthcallback():
-    logger.debug("Request to oauthcallback")
-    state = flask.session.get("state", "")
-    flow = gdocs.get_oauth_flow(state)
+    logger.debug("Request to /oauthcallback")
+    if "state" not in flask.session:
+        logger.error("No state in session")
+        return flask.redirect(
+            flask.url_for("authorize", _external=True, _scheme=SCHEME)
+        )
+
+    flow = gdocs.get_oauth_flow(flask.session["state"])
     flow.redirect_uri = flask.url_for("oauthcallback", _external=True, _scheme=SCHEME)
-    logger.debug(f"Setting redirect_uri to {flow.redirect_uri}")
+    logger.debug(f"Setting redirect_uri to {flow.redirect_uri} from oauthcallback")
 
     # https preference isn't being encoded well...
     curr_url = flask.request.url
     if curr_url.startswith("http://"):
         curr_url = curr_url.replace("http://", "https://", 1)
+    logger.debug("Current URL: " + curr_url)
 
     # Use the authorization server's response to fetch the OAuth 2.0 tokens.
     authorization_response = curr_url
     logger.debug(f"Fetching token for {flask.request.url}")
     flow.fetch_token(authorization_response=authorization_response)
 
-    credentials = flow.credentials
-    flask.session["credentials"] = gdocs.credentials_to_dict(credentials)
-    return flask.redirect(
-        flask.url_for("summarize_file", _external=True, _scheme=SCHEME)
-    )
-
-
-@app.route("/api/summarize", methods=["GET", "POST"])
-@limiter.limit("10 per 1 minute")  # <------------ New line
-def summarize_file():
-    inputs = flask.session.setdefault("inputs", {})
-    for x in ["abstract", "title", "authors", "g-recaptcha-response"]:
-        if x in request.form:
-            inputs[x] = request.form[x].strip()
-        if x not in inputs:
-            return f"Missing required input {x}: {inputs}, {flask.session.get('state')}"
-    logger.debug("Received request to summarize file")
-    logger.debug(f"inputs {inputs}")
-    logger.debug(f"state {flask.session.get('state')}")
-
-    if "credentials" not in flask.session:
-        return flask.redirect(
-            flask.url_for("authorize", _external=True, _scheme=SCHEME)
-        )
-
-    captcha_response = inputs["g-recaptcha-response"]
-    if not is_human(captcha_response):
-        return "Sorry, you are not human!"
-
-    logger.debug("GOT past authorization!")
-    abstract = inputs["abstract"]
-    title = inputs["title"]
-    authors = inputs["authors"]
-    credentials = Credentials(**flask.session["credentials"])
-
-    # Create a unique temporary file to save the paper into
-    with tempfile.TemporaryDirectory() as tmp_out:
-        ctx = Ctx()
-        ctx.credentials = credentials
-        ctx.input.abstract = abstract
-        ctx.input.authors = authors
-        ctx.input.title = title
-        ctx.output_format = "gdoc"
-        ctx.output_file = Path(tmp_out) / "summary"
-        api.summarize(ctx)
-        assert ctx.output_link is not None
-        return flask.redirect(ctx.output_link)
-
-
-def is_human(captcha_response):
-    """Validating recaptcha response from google server
-    Returns True captcha test passed for submitted form else returns False.
-    """
-    print(captcha_response)
-    secret = Config.get().recapcha_secret
-    payload = {"response": captcha_response, "secret": secret}
-    response = requests.post("https://www.google.com/recaptcha/api/siteverify", payload)
-    response_text = json.loads(response.text)
-    print(response_text)
-    return response_text["success"]
+    flask.session["credentials"] = gdocs.credentials_to_dict(flow.credentials)
+    return flask.redirect(flask.url_for("index", _external=True, _scheme=SCHEME))

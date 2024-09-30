@@ -4,5 +4,6 @@
 .*key
 .venv
 .cache
+credentials*.json
 __pycache__
 tmp/

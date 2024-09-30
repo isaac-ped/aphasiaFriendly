@@ -1,0 +1,13 @@
+{% extends "layout.html.j2" %}
+{% block body %}
+<h1>Hello, welcome to article friend. </h1>
+
+{% if authenticated %} You are authenticated. <br />
+
+Click <a href="/summarize">here</a> to summarize a publication.
+
+{% else %} You are not authenticated. <br />
+
+Click <a href="/authorize">here</a> to authenticate with google
+{% endif %}
+{% endblock %}
