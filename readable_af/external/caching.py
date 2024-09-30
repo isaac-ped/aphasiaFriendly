@@ -1,7 +1,6 @@
 import json
 import pickle
 
-from rsa import verify
 from ..config import Config
 import redis
 import hashlib

@@ -1,4 +1,7 @@
 import json
+import yaml
+
+from readable_af.errors import AFException
 from ..external import openai as oa
 from readable_af.model.summary import Bullet, Metadata, Summary, Icon
 from ..logger import logger
@@ -131,7 +134,7 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
     "summary": [
         {
             "text": "<b>Aphasia</b> is a <b>problem</b> with <b>language</b> that can happen after <b>stroke</b>",
-            "icon_keywords": ["miscommunication", "stroke"]
+            "icon_keywords": ["miscommunication","stroke"]
         },
         {
             "text": "Language usually <b>gets better</b>, but we can’t always <b>predict how much</b>",
@@ -187,7 +190,17 @@ def generate_bullets(summary: Summary, abstract: str) -> None:
             [line for line in response.split("\n") if not line.startswith("```")]
         )
     logger.info(f"Generated the following summary: {response}")
-    response = json.loads(response)
+    try:
+        response = json.loads(response)
+    except json.JSONDecodeError:
+        logger.warning("ChatGPT is doing something annoying with json. Trying yaml")
+        try:
+            response = yaml.safe_load(response)
+        except:
+            logger.exception("Failed to parse response")
+            raise AFException(
+                "ChatGPT is providing an invalid response. Please try again later."
+            )
     summary.metadata.simplified_title = response["title"]
     for entry in response["summary"]:
         icons = []

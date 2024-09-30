@@ -143,7 +143,7 @@ def summarize_file():
             </script>
             """
         except Exception as e:
-            logger.error(f"Error summarizing: {e} - {print_stack()}")
+            logger.exception(f"Error summarizing: {e}")
             yield f"""
             <script>
                 document.getElementById("progress").innerHTML = "Sorry! We appear to have run into an error: {e} <br/> Please try again later"
