@@ -1,14 +1,4 @@
-<!doctype html>
-<title>My Application</title>
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-<ul class=flashes>
-    {% for message in messages %}
-    <li>{{ message }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
-{% endwith %}
+{% extends "layout.html.j2" %}
 {% block head %}
 <script src="https://www.google.com/recaptcha/api.js"></script>
 <script>
@@ -23,43 +13,74 @@
         document.getElementById("summary-form").submit();
     }
 
+    aphasia_group_sample = {
+        "title": "Designing and Implementing a Community Aphasia Group: An Illustrative Case Study of the Aphasia Group of Middle Tennessee",
+        "authors": "Deborah F Levy, Anna V Kasdan, Katherine M Bryan, Stephen M Wilson, Michael de Riesthal, Dominique P Herrington",
+        "abstract": `Purpose: Community aphasia groups serve an important purpose in enhancing the quality of life and psychosocial well-being of individuals with chronic aphasia. Here, we describe the Aphasia Group of Middle Tennessee, a community aphasia group with a 17-year (and continuing) history, housed within Vanderbilt University Medical Center in Nashville, Tennessee.
 
-    samples = {{ samples | tojson }};
+Method: We describe in detail the history, philosophy, design, curriculum, and facilitation model of this group. We also present both quantitative and qualitative outcomes from group members and their loved ones.
 
-    function setSample(x) {
-        console.log(x.value)
-        var title = document.getElementById('title');
-        var authors = document.getElementById('authors');
-        var abstract = document.getElementById('abstract');
-        selectedSample = samples.find(sample => sample.id == x.value);
-        title.value = selectedSample['title'];
-        authors.value = selectedSample['authors'];
-        abstract.value = selectedSample['abstract'];
+Results: Group members and their loved ones alike indicated highly positive assessments of the format and value of the Aphasia Group of Middle Tennessee.
+
+Conclusion: By characterizing in detail the successful Aphasia Group of Middle Tennessee, we hope this can serve as a model for clinicians interested in starting their own community aphasia groups, in addition to reaching individuals living with chronic aphasia and their loved ones through the accessible and aphasia-friendly materials provided with this clinical focus article."
+        `};
+
+    mlsm_sample = {
+        "title": "Multivariate lesion-symptom mapping for predicting trajectories of recovery from aphasia",
+        "authors": "Deborah F Levy, Jillian L Entrup, Sarah M Schneck, Caitlin F Onuscheck, Maysaa Rahman, Anna Kasdan, Marianne Casilio, Emma Willey, L Taylor Davis, Michael de Riesthal, Howard S Kirshner, Stephen M Wilson",
+        "abstract": `Individuals with post-stroke aphasia tend to recover their language to some extent; however, it remains challenging to reliably predict the nature and extent of recovery that will occur in the long term. The aim of this study was to quantitatively predict language outcomes in the first year of recovery from aphasia across multiple domains of language and at multiple timepoints post-stroke.
+
+We recruited 217 patients with aphasia following acute left hemisphere ischaemic or haemorrhagic stroke and evaluated their speech and language function using the Quick Aphasia Battery acutely and then acquired longitudinal follow-up data at up to three timepoints post-stroke: 1 month (n = 102), 3 months (n = 98) and 1 year (n = 74). We used support vector regression to predict language outcomes at each timepoint using acute clinical imaging data, demographic variables and initial aphasia severity as input.
+
+We found that ∼60% of the variance in long-term (1 year) aphasia severity could be predicted using these models, with detailed information about lesion location importantly contributing to these predictions. Predictions at the 1- and 3-month timepoints were somewhat less accurate based on lesion location alone, but reached comparable accuracy to predictions at the 1-year timepoint when initial aphasia severity was included in the models. Specific subdomains of language besides overall severity were predicted with varying but often similar degrees of accuracy.
+
+Our findings demonstrate the feasibility of using support vector regression models with leave-one-out cross-validation to make personalized predictions about long-term recovery from aphasia and provide a valuable neuroanatomical baseline upon which to build future models incorporating information beyond neuroanatomical and demographic predictors.`
+    }
+
+
+    function setSample(sample) {
+        var title = document.getElementById('title-text');
+        var authors = document.getElementById('authors-text');
+        var abstract = document.getElementById('abstract-text');
+        title.value = sample['title'];
+        authors.value = sample['authors'];
+        abstract.value = sample['abstract'];
+    };
+
+    function clearInputs() {
+        var title = document.getElementById('title-text');
+        var authors = document.getElementById('authors-text');
+        var abstract = document.getElementById('abstract-text');
+        title.value = '';
+        authors.value = '';
+        abstract.value = '';
     };
 
 </script>
 {% endblock%}
 {% block body %}
-<form id="summary-form" action="/api/summarize" method="post">
-    <p> Please enter information about your publication, or choose a sample from the list below </p>
-    <label for="sample">Select a sample publication:</label>
-    <select name="sample" id="sample" onchange="setSample(this)">
-        {% for sample in samples %}
-        <option value="{{ sample.id }}">{{ sample.title }}</option>
-        {% endfor %}
-    </select></br>
-    <label for="title">Title:</bold></label> <br />
-    <textarea rows="2" cols="100" type="text" id="title"
-        name="title">Agrammatism and Paragrammatism: A Cortical Double Dissociation Revealed by Lesion-Symptom Mapping </textarea>
-    <br />
-    <label for="authors">Authors:</label> <br />
-    <textarea rows="2" cols="100" id="authors"
-        name="authors">William Matchin, Alexandra Basilakos, Brielle C. Stark, Dirk-Bart den Ouden, Julius Fridriksson, Gregory Hickok</textarea>
-    <br />
-    <label for="abstract">Abstract:</label> <br />
-    <textarea id="abstract" name="abstract" rows="20"
-        cols="100">The fundamental distinction of grammatical deficits in aphasia, agrammatism and paragrammatism, was made over a century ago. However, the extent to which the agrammatism/paragrammatism distinction exists independently of differences in speech fluency has not clearly been investigated. Despite much research on agrammatism, the lesion correlates of paragrammatism are essentially unknown. Lesion-symptom mapping was used to investigate the degree to which the lesion correlates of agrammatism and paragrammatism overlap or dissociate. Four expert raters assessed videos of 53 right-handed patients with aphasia following chronic left hemisphere stroke retelling the Cinderella story. Consensus discussion determined each subject’s classification with respect to grammatical deficits as Agrammatic, Paragrammatic, Both, or No Grammatical Deficit. Each subject’s lesion was manually drawn on a high- resolution MRI and warped to standard space for group analyses. Lesion-symptom mapping analyses were performed in NiiStat including lesion volume as a covariate. Secondary analyses included speech rate (words per minute) as an additional covariate. Region of interest analyses identified a double dissociation between these syndromes: damage to Broca’s area was significantly associated with agrammatism, p = 0.001 (but not paragrammatism, p = 0.930), while damage to the left posterior superior and middle temporal gyri was significantly associated with paragrammatism, p < 0.001 (but not agrammatism, p = 0.873). The same results obtained when regressing out the effect of speech rate, and non-overlapping lesion distributions between the syndromes were confirmed by uncorrected whole brain analyses. Our results support a fundamental distinction between agrammatism and paragrammatism.</textarea><br />
-    <button class="g-recaptcha" data-sitekey="{{ sitekey }}" data-callback='onSubmit'
-        data-action='submit'>Submit</button>
-</form>
+<p> Please enter information about your publication, or choose from one of the following samples: </p>
+<div id="samples">
+    <button class="button sample-button" onclick="setSample(aphasia_group_sample)">
+        Designing and implementing a community aphasia group: An illustrative case study of the Aphasia Group of Middle
+        Tennessee </button>
+    <button class="button sample-button" onclick="setSample(mlsm_sample)">
+        Multivariate lesion-symptom mapping for predicting trajectories of recovery from aphasia</button>
+</div>
+<div id="form">
+    <form id="summary-form" action="/api/summarize" method="post">
+        <label for="title">Title:</label> <br />
+        <textarea rows="2" type="text" id="title-text" name="title"></textarea>
+        <br />
+        <label for="authors">Authors:</label> <br />
+        <textarea rows="3" id="authors-text" name="authors"></textarea>
+        <br />
+        <label for="abstract">Abstract:</label> <br />
+        <textarea id="abstract-text" name="abstract" rows="20"></textarea><br />
+
+        <button class="button g-recaptcha" data-sitekey="{{ sitekey }}" data-callback='onSubmit' data-action='submit'
+            style="float:left;">Submit</button>
+        <a href="#" id="clear" onclick="clearInputs()" style="float:right;"> Clear </a>
+    </form>
+</div>
 {% endblock %}

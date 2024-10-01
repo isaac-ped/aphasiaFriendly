@@ -1,13 +1,74 @@
 {% extends "layout.html.j2" %}
 {% block body %}
-<h1>Hello, welcome to article friend. </h1>
 
-{% if authenticated %} You are authenticated. <br />
 
-Click <a href="/summarize">here</a> to summarize a publication.
+<div class="info" id="description">
+    <p> Welcome to Article Friend! </p>
 
-{% else %} You are not authenticated. <br />
+    <p></p>ArticleFriend is a resource designed for researchers interested in generating accessible, aphasia-friendly
+    versions of their research for people with aphasia.</p>
+    <p>ArticleFriend is free to use and is continually being refined.</p>
+    <p>ArticleFriend is published in this peer-reviewed manuscript, where you can find more information: </p>
+    <p class="citation"> This will be a citation </p>
 
-Click <a href="/authorize">here</a> to authenticate with google
-{% endif %}
+</div>
+
+<br /><br />
+
+<div class="begin-container">
+    <a {% if authenticated %}href="/summarize" {% else %} href="/auth" {%endif%} class="button begin-button"> Click here
+        to
+        begin </a>
+</div>
+<br /><br />
+
+
+<div class="info" id="faq">
+    <h2> FAQ </h2>
+
+    {% set faq = [
+    {
+    "Q": "Who is ArticleFriend For?",
+    "A": "Some people"
+    },
+    {
+    "Q": "Who is ArticleFriend NOT for?",
+    "A": "Anyone else..."
+    },
+    {
+    "Q": "Why do you need to authenticate my google account in ord for me to use ArticleFriend? ",
+    "A": "Need to write a file to google drive..."
+    },
+    {
+    "Q": "This question has a very long answer...",
+    "A": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+        dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+        ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+        fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
+        deserunt mollit anim id est laborum.</p>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+        dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+        ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+        fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
+        deserunt mollit anim id est laborum.</p>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+        dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+        ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+        fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
+        deserunt mollit anim id est laborum.</p>",
+    }
+    ]%}
+    {% for question in faq %}
+    <details>
+        <summary> {{ question["Q"] }} </summary>
+        <div class=answer>
+            <p>{{ question["A"] }}</p>
+        </div>
+    </details>
+    {% endfor %}
+
+
+</div>
+
+
 {% endblock %}

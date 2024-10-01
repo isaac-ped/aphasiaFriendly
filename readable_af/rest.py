@@ -3,19 +3,16 @@ from functools import cache
 import json
 import os
 from pathlib import Path
-from traceback import print_stack
 from flask import (
     Flask,
     render_template,
     request,
-    send_file,
     Response,
     flash,
     stream_with_context,
 )
 import flask
 import requests
-from google.oauth2.credentials import Credentials
 
 from readable_af.output import gdocs
 from .model.request import Ctx
@@ -56,27 +53,6 @@ def rate_limited(limit: RequestLimit):
 SAMPLE_DIR = Path(__file__).parent / "templates/samples"
 
 
-@cache
-def load_samples():
-    samples = []
-
-    for i, sample_input in enumerate(SAMPLE_DIR.glob("*.txt")):
-        try:
-            with open(sample_input, "r") as f:
-                lines = f.readlines()
-                samples.append(
-                    {
-                        "id": i,
-                        "title": lines[0].strip(),
-                        "authors": lines[1].strip(),
-                        "abstract": "".join(lines[2:]).strip(),
-                    }
-                )
-        except Exception as e:
-            logger.error(f"Error loading sample {sample_input}: {e}")
-    return samples
-
-
 @app.route("/", methods=["GET"])
 @limiter.limit("10 per 1 minute", on_breach=rate_limited)  # <------------ New line
 def index():
@@ -87,17 +63,27 @@ def index():
     )
 
 
+@app.route("/auth", methods=["GET"])
+def auth():
+    if gdocs.get_credentials():
+        return flask.redirect(flask.url_for("summarize"))
+
+    return render_template(
+        "auth.html.j2",
+        sitekey=Config.get().recapcha_site_key,
+        authenticated=gdocs.get_credentials(),
+    )
+
+
 @app.route("/summarize", methods=["GET"])
 @limiter.limit("10 per 1 minute", on_breach=rate_limited)  # <------------ New line
 def summarize():
-
     if not gdocs.get_credentials():
         flash("Please authenticate with Google before continuing.")
-        return flask.redirect(flask.url_for("index"))
+        return flask.redirect(flask.url_for("auth"))
     return render_template(
         "summarize.html.j2",
         sitekey=Config.get().recapcha_site_key,
-        samples=load_samples(),
     )
 
 
