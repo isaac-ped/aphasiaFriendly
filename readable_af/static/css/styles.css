@@ -51,6 +51,7 @@ div#main {
 details summary {
     padding-top: 10px;
     padding-bottom:10px;
+    cursor: pointer;
 }
 
 details div {

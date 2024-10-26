@@ -82,7 +82,11 @@ def _get_icon(icon_id: int) -> bytes | None:
     response = requests.get(
         endpoint, auth=auth, params={"color": "000000", "filetype": "png", "size": 100}
     )
-    content = json.loads(response.content.decode("utf-8"))
+    try:
+        content = json.loads(response.content.decode("utf-8"))
+    except Exception as e:
+        logger.error(f"Error decoding response: {e}\n{response.content}")
+        return None
     logger.debug(f"Got response with keys {content.keys()} from {endpoint}")
     dbg = copy.deepcopy(content)
     dbg["base64_encoded_file"] = "..."
