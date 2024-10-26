@@ -5,12 +5,14 @@
 <div class="info" id="description">
     <p> Welcome to Article Friend! </p>
 
-    <p></p>ArticleFriend is a resource designed for researchers interested in generating accessible, aphasia-friendly
+    <p></p>Article Friend is a resource designed for researchers interested in generating accessible, aphasia-friendly
     versions of their research for people with aphasia.</p>
-    <p>ArticleFriend is free to use and is continually being refined.</p>
-    <p>ArticleFriend is published in this peer-reviewed manuscript, where you can find more information: </p>
-    <p class="citation"> This will be a citation </p>
-
+    <p>Article Friend is free to use and is continually being refined.</p>
+    <p>Article Friend is described in the following pre-print, where you can find more information: </p>
+    <p class="citation"> Kasdan AV, Levy DF, Pedisich IM, Wilson SM, Herrington D <i>(In revisions)</i><br />
+        <b>A practical guide to translating scientific publications into aphasia-friendly summaries.</b>
+        <a href="https://osf.io/37usj">https://osf.io/37usj</a>
+    </p>
 </div>
 
 <br /><br />
@@ -28,34 +30,22 @@
 
     {% set faq = [
     {
-    "Q": "Who is ArticleFriend For?",
-    "A": "Some people"
+    "Q": "Who is Article Friend for?",
+    "A": "Article Friend is for researchers who want to make their research more accessible to individuals with
+    aphasia."
     },
     {
-    "Q": "Who is ArticleFriend NOT for?",
-    "A": "Anyone else..."
+    "Q": "Who is Article Friend NOT for?",
+    "A": "Article Friend is NOT currently intended for use by individuals without research expertise.
+    Large language models, such as those used here, can often 'hallucinate' and misunderstand inputted texts.
+    All output should be edited and verified by someone with research expertise before results are made public."
     },
     {
-    "Q": "Why do you need to authenticate my google account in ord for me to use ArticleFriend? ",
-    "A": "Need to write a file to google drive..."
-    },
-    {
-    "Q": "This question has a very long answer...",
-    "A": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-        dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-        ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-        fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
-        deserunt mollit anim id est laborum.</p>
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-        dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-        ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-        fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
-        deserunt mollit anim id est laborum.</p>
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-        dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-        ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-        fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
-        deserunt mollit anim id est laborum.</p>",
+    "Q": "Why do you need to authenticate my Google account in order for me to use Article Friend? ",
+    "A": "The output of Article Friend is currently output to Google Docs, which requires the authentication of a Google
+    account.
+    This authentication to Google is temporary, and Article Friend only has access to the document it produced.
+    We do not store any information about your account."
     }
     ]%}
     {% for question in faq %}

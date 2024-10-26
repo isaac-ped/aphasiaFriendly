@@ -10,6 +10,7 @@ div#title {
 }
 div#title>h1{
     margin-top:0px;
+    text-decoration: underline;
 }
 div#title a{
     text-decoration: none;
@@ -66,8 +67,21 @@ details p {
 
 p.citation {
     font-family: monospace;
-    margin-left: 20px
+    margin-left: 10px;
+    padding-left: 10px;
+    border-left: 2px solid lightgray;
 }
+
+p.citation a{
+    text-decoration: underline dotted;
+    color:black;
+}
+
+p.citation a:hover {
+    text-decoration: underline;
+    color:darkblue;
+}
+
 
 .toast {
     /* position:absolute; */
@@ -181,6 +195,6 @@ div#samples {
     margin-right:auto;
     align-content: center;
     text-align: center;
-    font-size: 1.5em;
+    font-size: 1em;
     text-decoration: none;
   }
