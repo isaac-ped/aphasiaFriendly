@@ -106,6 +106,7 @@ def summarize_file():
     title = request.form["title"]
     authors = request.form["authors"]
 
+    # TODO: Remove this -- it doesn't work when deployed anyway
     @stream_with_context
     def stream_summary_output():
         """Streamable, so that we can render the page and then add the output link to the page once it's done"""

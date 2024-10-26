@@ -198,3 +198,23 @@ div#samples {
     font-size: 1em;
     text-decoration: none;
   }
+
+.loadingmsg { 
+    position: absolute;
+    top:0;
+    left:0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255,255,255,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loadingmsg text{
+    background-color: white;
+    padding: 2em;
+    font-style: bold;
+    border: 1px solid black;
+    font-family: sans-serif;
+}
