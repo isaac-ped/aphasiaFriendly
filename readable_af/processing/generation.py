@@ -113,7 +113,7 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
         },
     ],
     "title": "A new title for the paper that is short and simpler",
-    "rating": <number between 1 and 10 rating your confidence in your response>,
+    "rating": <number between 1 and 10 rating your confidence in your response>
 }
 """,
             role="system",
