@@ -3,7 +3,11 @@
 
 
 <div id="progress">
-    Generating summary: Please do not navigate away from this page!
+    {% if not error %}
+    <p>Summary generated! Click <a href='{{output_link}}'>here</a> to view it</p>
+    {% else %}
+    <p>Sorry! We appear to have run into an error: {{ error }}. Please try again later</p>
+    {% endif %}
 </div>
 
 {% endblock %}

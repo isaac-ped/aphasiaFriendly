@@ -108,38 +108,29 @@ def summarize_file():
     title = request.form["title"]
     authors = request.form["authors"]
 
-    # TODO: Remove this -- it doesn't work when deployed anyway
-    @stream_with_context
-    def stream_summary_output():
-        """Streamable, so that we can render the page and then add the output link to the page once it's done"""
-        yield render_template("result.html.j2")
+    try:
+        ctx = Ctx()
+        ctx.credentials = credentials
+        ctx.input.abstract = abstract
+        ctx.input.authors = authors
+        ctx.input.title = title
+        ctx.output_format = "gdoc"
+        with tempfile.TemporaryDirectory() as tmp_out:
+            ctx.output_file = Path(tmp_out) / "summary"
+            api.summarize(ctx)
+            assert ctx.output_link is not None
+    except Exception as e:
+        logger.exception(f"Error summarizing: {e}")
+        return render_template(
+            "result.html.j2",
+            error=str(e),
+        )
 
-        try:
-            ctx = Ctx()
-            ctx.credentials = credentials
-            ctx.input.abstract = abstract
-            ctx.input.authors = authors
-            ctx.input.title = title
-            ctx.output_format = "gdoc"
-            with tempfile.TemporaryDirectory() as tmp_out:
-                ctx.output_file = Path(tmp_out) / "summary"
-                api.summarize(ctx)
-                assert ctx.output_link is not None
-
-            yield f"""
-            <script>
-                document.getElementById("progress").innerHTML = "Summary generated! Click <a href='{ctx.output_link}'>here</a> to view it"
-            </script>
-            """
-        except Exception as e:
-            logger.exception(f"Error summarizing: {e}")
-            yield f"""
-            <script>
-                document.getElementById("progress").innerHTML = "Sorry! We appear to have run into an error: {e} <br/> Please try again later"
-            </script>
-            """
-
-    return Response(stream_summary_output())
+    return render_template(
+        "result.html.j2",
+        error=None,
+        output_link=ctx.output_link,
+    )
 
 
 def is_human(captcha_response):
