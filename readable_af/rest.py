@@ -96,10 +96,12 @@ def summarize_file():
         return flask.redirect(flask.url_for("authorize"))
 
     if "g-recaptcha-response" not in request.form:
+        logger.warning("No recaptcha response")
         return "Sorry, you are not human!"
 
     captcha_response = request.form["g-recaptcha-response"]
     if not is_human(captcha_response):
+        logger.warning("Recapcha failed")
         return "Sorry, you are not human!"
 
     abstract = request.form["abstract"]
@@ -144,12 +146,12 @@ def is_human(captcha_response):
     """Validating recaptcha response from google server
     Returns True captcha test passed for submitted form else returns False.
     """
-    print(captcha_response)
+    logger.debug(f"Capcha response: {captcha_response}")
     secret = Config.get().recapcha_secret
     payload = {"response": captcha_response, "secret": secret}
     response = requests.post("https://www.google.com/recaptcha/api/siteverify", payload)
     response_text = json.loads(response.text)
-    print(response_text)
+    logger.debug(f"Response text: {response_text}")
     return response_text["success"]
 
 
