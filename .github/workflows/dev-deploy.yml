@@ -1,4 +1,4 @@
-name: Deploy to Fly
+name: Dev deployment
 on:
   pull_request:
     types: [opened, synchronize]
