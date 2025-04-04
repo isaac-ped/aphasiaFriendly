@@ -96,6 +96,9 @@ class GoogleDocGenerator:
                     "name": f"TESTING: {summary.metadata.simplified_title}",
                     "parents": [folder],
                     "mimeType": "application/vnd.google-apps.document",
+                    # the content between hashes here is deb trying to set up a watermark; she does not know how to test if this works lol
+                    "createFooter": {'type': 'DEFAULT'},
+                    "insertText": {'location': {'segmentID': 'footer','index': 0},'text': 'Summary created with Article Friend'} #, 
                 },
                 media_body=media,
             )
