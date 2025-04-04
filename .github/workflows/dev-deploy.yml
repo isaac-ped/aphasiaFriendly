@@ -13,6 +13,6 @@ jobs:
       - uses: superfly/flyctl-actions/setup-flyctl@master
         with:
           version: 0.3.85
-      - run: flyctl deploy --remote-only --config dev.fly.toml --app article-friend-dev
+      - run: flyctl deploy --remote-only --config dev.fly.toml 
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
