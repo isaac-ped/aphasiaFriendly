@@ -3,6 +3,7 @@
 pkgs.mkShell {
   buildInputs = [
 
+    pkgs.git
     pkgs.flyctl
 
     pkgs.nodejs-slim # For use in vscode's pylance
