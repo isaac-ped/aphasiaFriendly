@@ -15,4 +15,4 @@ jobs:
           version: 0.3.85
       - run: flyctl deploy --remote-only --config dev.fly.toml 
         env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          FLY_API_TOKEN: ${{ secrets.FLY_DEV_API_TOKEN }}
