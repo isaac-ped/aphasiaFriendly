@@ -96,6 +96,9 @@ class GoogleDocGenerator:
                     "name": f"TESTING: {summary.metadata.simplified_title}",
                     "parents": [folder],
                     "mimeType": "application/vnd.google-apps.document",
+                    'createFooter': {'type': 'DEFAULT'},
+                    'insertText': {'location': {'segmentId': 'footer','index': 0},
+                                   'text': 'Summary created with Article Friend'},
                 },
                 media_body=media,
             )
