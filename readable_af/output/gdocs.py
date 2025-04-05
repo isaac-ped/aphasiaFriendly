@@ -99,12 +99,6 @@ class GoogleDocGenerator:
                     'createFooter': {'type': 'DEFAULT'},
                     'insertText': {'location': {'segmentId': 'footer','index': 0},
                                    'text': 'Summary created with Article Friend'},
-                    'updateTextStyle': {'range': {'segmentId': 'footer','startIndex': 0,'endIndex': 35},
-                                        'textStyle': {'italic': True},'fields': 'italic'},
-                    'updateParagraphStyle': {'range': {'segmentId': 'footer','startIndex': 0,'endIndex': 35},
-                                             'paragraphStyle': {'alignment': 'END'},'fields': 'alignment'},
-                    'updateTextStyle': {'range': {'segmentId': 'footer','startIndex': 21,'endIndex': 35},
-                                        'textStyle': {'link': {'url': 'https://www.article-friend.com/'},'fields': 'link'}},
                 },
                 media_body=media,
             )
