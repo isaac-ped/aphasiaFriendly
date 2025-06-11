@@ -63,6 +63,7 @@ class HtmlGenerator:
             for icon in bullet.icons[:2]:
                 text += f"<img alt='{icon.keyword}' width=75  height=75 src='data:image/png;base64,{b64encode(icon.icon).decode("utf-8")}'/>"
             text += "</div>\n"
+        text += f"<h1 style='text-align:left;font-style:italic>Drafted with Article Friend</h1>
         text += "</body></html>"
         return text
 
