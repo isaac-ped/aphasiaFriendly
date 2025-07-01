@@ -3,6 +3,7 @@
 .*secret
 .*key
 .venv
+.env
 .cache
 credentials*.json
 __pycache__
