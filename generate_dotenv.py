@@ -35,8 +35,6 @@ def copy_dev_env_vars(output: Path):
         if factory and (var := getattr(factory, "__self__", None)):
             if isinstance(var, (EnvVar, SecretFile)) and var.required:
                 secret_vars.append(var.env)
-            elif isinstance(var, SecretFile) and var.required:
-                secret_vars.append(var.env)
 
     print(f"Fetching the following variables from fly.io: {', '.join(secret_vars)}")
 
