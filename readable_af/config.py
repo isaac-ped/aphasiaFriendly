@@ -10,7 +10,7 @@ _DEFAULT_ENV_FILE = _HERE.parent / ".env"
 
 
 def _read_dotenv(env_var: str, file_path: Path = _DEFAULT_ENV_FILE) -> str:
-    """Read a specific environemnt variable from a .env file"""
+    """Read a specific environment variable from a .env file"""
     if not file_path.exists():
         raise FileNotFoundError(f"File {file_path} does not exist.")
 
