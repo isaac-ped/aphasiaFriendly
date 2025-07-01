@@ -97,12 +97,14 @@ def summarize_file():
 
     if "g-recaptcha-response" not in request.form:
         logger.warning("No recaptcha response")
-        return "Sorry, you are not human!"
+        #return "Sorry, you are not human!"
+        return "Sorry, an error has occurred. Please email deborah.levy@princeton.edu to report this error."
 
     captcha_response = request.form["g-recaptcha-response"]
     if not is_human(captcha_response):
         logger.warning("Recapcha failed")
-        return "Sorry, you are not human!"
+        #return "Sorry, you are not human!"
+        return "Sorry, an error has occurred. Please email deborah.levy@princeton.edu to report this error."
 
     abstract = request.form["abstract"]
     title = request.form["title"]
