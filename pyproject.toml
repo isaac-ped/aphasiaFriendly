@@ -21,6 +21,7 @@ dependencies = [
     "google-auth-oauthlib>=1.2.2",
 ]
 
+
 [dependency-groups]
 dev = [
     "pytest>=8.4.2",
@@ -30,3 +31,6 @@ dev = [
 [project.scripts]
 af = "readable_af.cli:cli"
 server = "readable_af.rest:app"
+
+[tool.uv]
+package = true

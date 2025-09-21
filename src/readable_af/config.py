@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import ClassVar
 
 _HERE = Path(__file__).parent
-_DEFAULT_ENV_FILE = _HERE.parent / ".env"
+_DEFAULT_ENV_FILE = Path(".env")
 
 
 def _read_dotenv(env_var: str, file_path: Path = _DEFAULT_ENV_FILE) -> str:
