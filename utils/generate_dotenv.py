@@ -50,5 +50,5 @@ def copy_dev_env_vars(output: Path):
 
 
 if __name__ == "__main__":
-    output_path = Path(__file__).parent / ".env"
+    output_path = Path(__file__).parent.parent / ".env"
     copy_dev_env_vars(output_path)
