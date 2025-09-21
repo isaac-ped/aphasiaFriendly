@@ -10,4 +10,5 @@ jobs:
       - uses: astral-sh/ruff-action@v3
         with:
           src: "./src"
+          args: "format --check --diff"
 
