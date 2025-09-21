@@ -116,28 +116,6 @@ def rerun(
         print(f"Generated file {ctx.output_file}")
 
 
-@cli.command()
-@click.argument("input_files", type=Path, nargs=-1)
-@click.option("-v", "--verbose", count=True)
-def abstract_count(input_files: list[Path], verbose: int = 0):
-    """Re-run the summary generation process on a previously summarized file."""
-    setup_logging(verbose)
-    failures = set()
-    abstracts = defaultdict(dict)
-    for file in input_files:
-        try:
-            abstract = text_extraction.find_abstract(file)
-            abstracts[file.name]["length"] = len(abstract)
-            abstracts[file.name]["contents"] = abstract.replace("\n", " ")
-        except:
-            logger.error(f"Failed on {file}")
-            failures.add(file)
-            pass
-    print(json.dumps(abstracts, indent=2))
-
-    if failures:
-        logger.error(f"Failures: {failures}")
-
 
 @cli.command()
 @click.argument("input_file", type=Path)
