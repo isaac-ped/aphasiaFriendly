@@ -1,7 +1,5 @@
 from base64 import b64encode
 import re
-import subprocess
-from pathlib import Path
 from ..model.request import Ctx
 
 from readable_af.model.summary import Summary
@@ -56,7 +54,7 @@ class HtmlGenerator:
         text += f"<div class='authors'>Authors: {authors}</div><br/>\n"
         text += "<br/>"*3
         text += f"<h2 class='subtitle'> An accessible version of: </h2><h2> {summary.metadata.title}  </h2>\n"
-        text += f"<hr class='pb' />"
+        text += "<hr class='pb' />"
         for bullet in summary.bullets:
             text += f"<h3 class='bullet' style='text-align:center'>{bullet.text.strip()}</h3>\n"
             text += "<div class='icons' style='text-align:center'>\n"

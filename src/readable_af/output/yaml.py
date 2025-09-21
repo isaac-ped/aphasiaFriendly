@@ -1,4 +1,3 @@
-from pathlib import Path
 
 import yaml
 from ..model.request import Ctx

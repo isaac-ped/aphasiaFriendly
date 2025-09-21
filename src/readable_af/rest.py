@@ -1,25 +1,27 @@
 # save this as app.py
-from functools import cache
 import json
 import os
+import tempfile
 from pathlib import Path
-from flask import (
-    Flask,
-    render_template,
-    request,
-    Response,
-    flash,
-    stream_with_context,
-)
+
 import flask
 import requests
+from flask import (
+    Flask,
+    Response,
+    flash,
+    render_template,
+    request,
+)
+from flask_limiter import Limiter, RequestLimit
+from flask_limiter.util import get_remote_address
 
 from readable_af.output import gdocs
-from .model.request import Ctx
-from .logger import setup_logging, logger
+
 from . import api
 from .config import Config
-import tempfile
+from .logger import logger, setup_logging
+from .model.request import Ctx
 
 IS_LOCAL = os.environ.get("FLASK_RUN_FROM_CLI", "") == "true"
 if IS_LOCAL:
@@ -37,11 +39,9 @@ app.config["SESSION_TYPE"] = "filesystem"
 
 app.config["PREFERRED_URL_SCHEME"] = SCHEME
 
-from flask_limiter import Limiter, RequestLimit
-from flask_limiter.util import get_remote_address
 
 limiter = Limiter(key_func=get_remote_address)
-limiter.init_app(app)  # <--------------------------------- New line
+limiter.init_app(app)
 setup_logging(3)
 
 
@@ -97,13 +97,13 @@ def summarize_file():
 
     if "g-recaptcha-response" not in request.form:
         logger.warning("No recaptcha response")
-        #return "Sorry, you are not human!"
+        # return "Sorry, you are not human!"
         return "Sorry, an error has occurred. Please email deborah.levy@princeton.edu to report this error."
 
     captcha_response = request.form["g-recaptcha-response"]
     if not is_human(captcha_response):
         logger.warning("Recapcha failed")
-        #return "Sorry, you are not human!"
+        # return "Sorry, you are not human!"
         return "Sorry, an error has occurred. Please email deborah.levy@princeton.edu to report this error."
 
     abstract = request.form["abstract"]

@@ -20,4 +20,7 @@ deploy: gen-requirements
 # Repopulate secrets file from production instance
 gen-dotenv:
     curl https://article-friend-dev.fly.dev > /dev/null
-    poetry run python utils/generate_dotenv.py 
+    uv run python utils/generate_dotenv.py
+
+lint:
+    uv run ruff check src

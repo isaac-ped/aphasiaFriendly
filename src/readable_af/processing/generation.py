@@ -196,11 +196,11 @@ def generate_bullets(summary: Summary, abstract: str) -> None:
         logger.warning("ChatGPT is doing something annoying with json. Trying yaml")
         try:
             response = yaml.safe_load(response)
-        except:
+        except Exception as e:
             logger.exception("Failed to parse response")
             raise AFException(
                 "ChatGPT is providing an invalid response. Please try again later."
-            )
+            ) from e
     summary.metadata.simplified_title = response["title"]
     for entry in response["summary"]:
         icons = []

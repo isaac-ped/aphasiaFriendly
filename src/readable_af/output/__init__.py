@@ -1,5 +1,3 @@
-
-from pathlib import Path
 from typing import Protocol
 
 from ..model.request import Ctx
@@ -7,8 +5,8 @@ from ..model.request import Ctx
 
 class Generator(Protocol):
     @staticmethod
-    def generate(summary, ctx: Ctx):
-        ...
+    def generate(summary, ctx: Ctx): ...
+
 
 def get_generator(format: str) -> Generator:
     from . import pptx, yaml, html, gdocs

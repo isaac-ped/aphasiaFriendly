@@ -1,5 +1,4 @@
 import subprocess
-from pathlib import Path
 from ..model.request import Ctx
 
 from readable_af.model.summary import Summary

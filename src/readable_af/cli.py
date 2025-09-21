@@ -1,4 +1,3 @@
-from collections import defaultdict
 import copy
 import subprocess
 from pathlib import Path
@@ -12,7 +11,6 @@ from .external import caching
 from . import api
 from .logger import logger, setup_logging
 from .model.request import Ctx
-from .processing import text_extraction
 
 
 @click.group()
