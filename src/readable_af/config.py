@@ -3,7 +3,7 @@ from functools import cache, cached_property
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, override
 
 _HERE = Path(__file__).parent
 _DEFAULT_ENV_FILE = Path(".env")
@@ -51,7 +51,7 @@ class RequiredEnvVar(EnvVar):
     required: ClassVar[bool] = True
 
     @cache
-    def get(self) -> str:
+    def get(self) -> str:  # pyright: ignore[reportIncompatibleVariableOverride]
         """Return the value of the env var, raising an exception if not set"""
         value = super().get()
         # This next line should never raise because 'required' is True above

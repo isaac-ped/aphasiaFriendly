@@ -21,7 +21,8 @@ def set_to_default(icon: Icon):
     Sets the icon to the QUESTION_MARK icon with some accompanying text
     """
     contents = _get_icon(QUESTION_MARK_ID)
-    icon.populate("", contents, QUESTION_MARK_ID)
+    if contents is not None:
+        icon.populate("", contents, QUESTION_MARK_ID)
 
 
 def populate(icon: Icon, blacklist: set[int]) -> bool:
@@ -94,7 +95,4 @@ def _get_icon(icon_id: int) -> bytes | None:
     if "base64_encoded_file" not in content:
         return None
 
-    # decoded = b64decode(content["base64_encoded_file"])
-    # with open("icon.png", "wb") as f:
-    #     f.write(decoded)
     return b64decode(content["base64_encoded_file"])
