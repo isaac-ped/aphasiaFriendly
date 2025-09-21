@@ -18,7 +18,6 @@ class Icon:
     _icon: bytes | None = None
     _id: int | None = None
 
-
     def calculate_checksum(self) -> int:
         return hash((self.keyword, self._id))
 
@@ -124,14 +123,11 @@ class Bullet:
             "text": self.text,
             "icons": [icon.asdict() for icon in self.icons],
         }
-    
 
     @classmethod
     def fromdict(cls, input: dict[str, Any]) -> "Bullet":
-        self = cls(
-            text=input["text"]
-        )
-        self.icons=[Icon.fromdict(icon) for icon in input["icons"]]
+        self = cls(text=input["text"])
+        self.icons = [Icon.fromdict(icon) for icon in input["icons"]]
         return self
 
 

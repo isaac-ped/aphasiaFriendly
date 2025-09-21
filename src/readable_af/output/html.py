@@ -6,7 +6,6 @@ from readable_af.model.summary import Summary
 
 
 class HtmlGenerator:
-
     @staticmethod
     def generate_text(summary: Summary) -> str:
         text = """
@@ -46,20 +45,22 @@ class HtmlGenerator:
         </head>
         <body>
         """
-        text += f"<h1 style='text-align:center'>{summary.metadata.simplified_title}</h1>\n"
+        text += (
+            f"<h1 style='text-align:center'>{summary.metadata.simplified_title}</h1>\n"
+        )
         authors = ", ".join(summary.metadata.authors)
         # Remove any numeric characters from the authors list
-        authors = re.sub(r'\d+', '', authors)
-        authors = re.sub(r'\s+', ' ', authors)
+        authors = re.sub(r"\d+", "", authors)
+        authors = re.sub(r"\s+", " ", authors)
         text += f"<div class='authors'>Authors: {authors}</div><br/>\n"
-        text += "<br/>"*3
+        text += "<br/>" * 3
         text += f"<h2 class='subtitle'> An accessible version of: </h2><h2> {summary.metadata.title}  </h2>\n"
         text += "<hr class='pb' />"
         for bullet in summary.bullets:
             text += f"<h3 class='bullet' style='text-align:center'>{bullet.text.strip()}</h3>\n"
             text += "<div class='icons' style='text-align:center'>\n"
             for icon in bullet.icons[:2]:
-                text += f"<img alt='{icon.keyword}' width=75  height=75 src='data:image/png;base64,{b64encode(icon.icon).decode("utf-8")}'/>"
+                text += f"<img alt='{icon.keyword}' width=75  height=75 src='data:image/png;base64,{b64encode(icon.icon).decode('utf-8')}'/>"
             text += "</div>\n"
         text += "</body></html>"
         return text

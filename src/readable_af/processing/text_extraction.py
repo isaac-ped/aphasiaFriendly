@@ -1,4 +1,5 @@
 """Attempt to extract abstracts from an academic PDF"""
+
 import re
 from functools import lru_cache
 from pathlib import Path
@@ -22,6 +23,7 @@ KNOWN_SECTIONS = (
 
 N_PAGES = 3
 
+
 # Cache only the most recent file
 @lru_cache(maxsize=1)
 def _extract_pdf_text(pdf_file: Path) -> str:
@@ -31,7 +33,8 @@ def _extract_pdf_text(pdf_file: Path) -> str:
         pages.append(page.extract_text())
     return " ".join(pages)
 
-def find_section_index(text: str, section: str, start_idx = 0) -> int:
+
+def find_section_index(text: str, section: str, start_idx=0) -> int:
     """Given a block of text, find the starting index of a section with heuristics"""
 
     # Look for the section name in all caps
@@ -52,7 +55,7 @@ def find_section_index(text: str, section: str, start_idx = 0) -> int:
     match = re.search(regex, text[start_idx:], re.MULTILINE | re.IGNORECASE)
     if match:
         return match.start() + start_idx
-    
+
     # If all else fails, try to find it at the end of a line in title-case
     regex = section.title() + r"\s*\n"
     logger.debug(f"Looking for {regex}")
@@ -68,10 +71,14 @@ def find_abstract(input_file: Path) -> str:
     paper_text = _extract_pdf_text(input_file)
     abstract_ind = find_section_index(paper_text, "abstract")
     if abstract_ind == -1:
-        logger.warn("Could not find abstract in paper. Attempting to find 'summary' instead")
+        logger.warn(
+            "Could not find abstract in paper. Attempting to find 'summary' instead"
+        )
         abstract_ind = find_section_index(paper_text, "summary")
     if abstract_ind == -1:
-        logger.warn("Could not find summary in paper either. Attempting to find introduction.")
+        logger.warn(
+            "Could not find summary in paper either. Attempting to find introduction."
+        )
         intro_ind = find_section_index(paper_text, "introduction")
         if intro_ind == -1:
             logger.warn("Could not find introduction in paper either. Giving up.")
@@ -81,8 +88,7 @@ def find_abstract(input_file: Path) -> str:
             logger.error("Abstruct is impossibly long. Refusing to process!")
             raise ValueError("Abstract is too long")
         return paper_text[:intro_ind]
-            
-            
+
     # Find the next section heading after the abstract
     next_ind = len(paper_text)
     for section in KNOWN_SECTIONS:

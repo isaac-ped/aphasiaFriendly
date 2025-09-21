@@ -5,7 +5,6 @@ from readable_af.model.summary import Summary
 
 
 class PPTXGenerator:
-
     @staticmethod
     def generate(summary: Summary, ctx: Ctx):
         out = ctx.output_file
@@ -18,7 +17,7 @@ class PPTXGenerator:
             f.write(f"% {summary.metadata.title} )\n")
             f.write(f"% Rating: {summary.rating}\n")
             f.write(f"% {', '.join(summary.metadata.authors)}\n")
-            #f.write(f"% {summary.metadata.date}\n")
+            # f.write(f"% {summary.metadata.date}\n")
             for bullet in summary.bullets:
                 print(f"**********\n{bullet.text}")
                 print(f"Keywords: {', '.join([icon.keyword for icon in bullet.icons])}")

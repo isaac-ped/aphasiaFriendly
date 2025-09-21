@@ -114,7 +114,6 @@ def rerun(
         print(f"Generated file {ctx.output_file}")
 
 
-
 @cli.command()
 @click.argument("input_file", type=Path)
 @click.option("-v", "--verbose", count=True)

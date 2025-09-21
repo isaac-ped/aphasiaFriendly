@@ -14,6 +14,7 @@ class Input:
     authors: str | None = None
     abstract: str | None = None
 
+
 @dataclass
 class Ctx:
     """Context for a request.
