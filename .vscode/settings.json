@@ -9,8 +9,9 @@
     "**/.venv": true
   },
   "python.languageServer": "Pylance",
-  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.typeCheckingMode": "standard",
   "python.analysis.diagnosticMode": "workspace",
   "pylint.enabled": false,
-  "ruff.enable": true
+  "ruff.enable": true,
+  "python.analysis.typeEvaluation.enableReachabilityAnalysis": true
 }
