@@ -10,5 +10,7 @@
   },
   "python.languageServer": "Pylance",
   "python.analysis.typeCheckingMode": "basic",
-  "python.analysis.diagnosticMode": "workspace"
+  "python.analysis.diagnosticMode": "workspace",
+  "pylint.enabled": false,
+  "ruff.enable": true
 }

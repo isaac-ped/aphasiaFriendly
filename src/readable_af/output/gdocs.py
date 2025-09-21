@@ -77,7 +77,6 @@ def create_folder(service, name):
 
 
 class GoogleDocGenerator:
-
     @staticmethod
     def generate(summary: Summary, ctx: Ctx) -> None:
         assert ctx.credentials is not None

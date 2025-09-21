@@ -34,3 +34,8 @@ server = "readable_af.rest:app"
 
 [tool.uv]
 package = true
+
+[tool.ruff]
+exclude = [
+    ".trash"
+]

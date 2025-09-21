@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from functools import cached_property
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +13,7 @@ class Input:
     title: str | None = None
     authors: str | None = None
     abstract: str | None = None
+
 
 @dataclass
 class Ctx:
