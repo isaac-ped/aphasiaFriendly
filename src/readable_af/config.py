@@ -3,7 +3,7 @@ from functools import cache, cached_property
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import ClassVar, override
+from typing import ClassVar
 
 _HERE = Path(__file__).parent
 _DEFAULT_ENV_FILE = Path(".env")
