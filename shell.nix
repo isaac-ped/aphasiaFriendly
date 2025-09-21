@@ -12,7 +12,7 @@ pkgs.mkShell {
     pkgs.docker
     pkgs.buildpack
     pkgs.python312
-    pkgs.poetry
+    pkgs.uv
     # A command runner that I like
     # https://github.com/casey/just
     pkgs.just

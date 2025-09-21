@@ -6,18 +6,18 @@ install args="":
     poetry install --sync {{args}}
 
 # Install and start local server
-dev: (install "-q")
-    poetry run flask --app readable_af.rest run --debug
+dev:
+    uv run flask --app readable_af.rest run --debug
 
-# Regenerate the requirements lockfile (requirements.txt)
-lock:
-    poetry run pip freeze --exclude-editable > requirements.txt
+# Regenerate the requriements.txt file
+gen-requirements:
+    uv export -q --no-hashes --no-dev --locked -o requirements.txt
 
 # Redeploy the website to production
-deploy: lock
+deploy: gen-requirements
     fly deploy
 
 # Repopulate secrets file from production instance
-generate_dotenv:
+gen-dotenv:
     curl https://article-friend-dev.fly.dev > /dev/null
     poetry run python utils/generate_dotenv.py 
