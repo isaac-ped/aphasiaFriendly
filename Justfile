@@ -23,4 +23,5 @@ gen-dotenv:
     uv run python utils/generate_dotenv.py
 
 lint:
-    uv run ruff check src
+    uv run ruff format
+    uv run ruff check
