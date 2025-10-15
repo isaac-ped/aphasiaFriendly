@@ -24,7 +24,7 @@ from this directory to enter a shell with all dependencies installed.
 Use the shortcut script:
 
 ```bash
-./af
+uv run af
 ```
 
 to install dependencies and access possible commands:
