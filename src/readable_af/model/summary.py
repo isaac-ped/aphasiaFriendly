@@ -3,6 +3,8 @@ from pathlib import Path
 from typing import Any, TypeGuard, TypeVar, ClassVar
 from ..logger import logger
 
+T = TypeVar("T")
+
 
 class UnpopulatedException(Exception):
     """Raised when an icon is not populated but is accessed"""
@@ -47,8 +49,6 @@ class Icon(BaseModel):
         self._id = id
 
     UNSET: ClassVar[object] = object()
-
-    T: ClassVar[TypeVar] = TypeVar("T")
 
     def up_to_date(self, field: T | object = UNSET) -> TypeGuard[T]:
         """Check if the icon is up to date.

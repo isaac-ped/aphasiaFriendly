@@ -36,7 +36,9 @@ def generate_metadata(preamble: str) -> Metadata:
     title, authors, date = response.split("\n")
     logger.info(f"Generated the following metadata: {title=}, {authors=}, {date=}")
     return Metadata(
-        title.strip(), [a.strip() for a in authors.split(",")], date.strip()
+        title=title.strip(),
+        authors=[a.strip() for a in authors.split(",")],
+        date=date.strip(),
     )
 
 
