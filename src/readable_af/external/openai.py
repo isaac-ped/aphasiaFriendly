@@ -18,8 +18,6 @@ def client():
 
 class Message(BaseModel):
     content: str
-    # Used to ensure that "role" is only ever passed as a keyword
-    # _: dataclasses.KW_ONLY -> Pydantic doesn't support this, presumably unnecessary
     role: Literal["user", "assistant", "system"] = "user"
 
 
