@@ -12,7 +12,7 @@ MODEL = "gpt-4o-2024-08-06"
 def metadata_prompt(preamble: str) -> list[oa.Message]:
     return [
         oa.Message(
-            "You are an assistant that handles the extraction of text from scientific articles. "
+            content="You are an assistant that handles the extraction of text from scientific articles. "
             "You will be provided with text that has been extracte from a scientific PDF and asked for a specific section "
             "of that text. The text may be extracted cleanly, in which case you may just be able to return the text "
             "in the same format that it was given to you.\n"
@@ -26,7 +26,7 @@ def metadata_prompt(preamble: str) -> list[oa.Message]:
             "You MUST always return EXACTLY three lines of text.",
             role="system",
         ),
-        oa.Message(preamble),
+        oa.Message(content=preamble),
     ]
 
 
@@ -36,14 +36,16 @@ def generate_metadata(preamble: str) -> Metadata:
     title, authors, date = response.split("\n")
     logger.info(f"Generated the following metadata: {title=}, {authors=}, {date=}")
     return Metadata(
-        title.strip(), [a.strip() for a in authors.split(",")], date.strip()
+        title=title.strip(),
+        authors=[a.strip() for a in authors.split(",")],
+        date=date.strip(),
     )
 
 
 def abstract_prompt(messy_abstract: str) -> list[oa.Message]:
     return [
         oa.Message(
-            "You are an assistant that handles the extraction of an abstract from scientific articles.\n"
+            content="You are an assistant that handles the extraction of an abstract from scientific articles.\n"
             "You will be provided with text that has been extracted from a scientific PDF and you should find and "
             "return the abstract from that text. It is possible that the text will be extracted cleanly, in which case "
             "you should just return the text in the same format that it was given to you.\n"
@@ -52,7 +54,7 @@ def abstract_prompt(messy_abstract: str) -> list[oa.Message]:
             "You should never respond with an answer other the specified text to be extracted",
             role="system",
         ),
-        oa.Message(messy_abstract),
+        oa.Message(content=messy_abstract),
     ]
 
 
@@ -66,7 +68,7 @@ def generate_abstract(messy_abstract: str) -> str:
 def summary_prompt(abstract: str) -> list[oa.Message]:
     return [
         oa.Message(
-            "You are an assistant that processes scientific articles into a few simple sentences "
+            content="You are an assistant that processes scientific articles into a few simple sentences "
             "that are understandable by someone that has difficulty reading. "
             "You will be passed the abstract of a scientific article and asked to summarize it. "
             "Your summary should produce 4-7 sentences of summary. "  # , with each sentence "
@@ -119,7 +121,7 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
             role="system",
         ),
         oa.Message(
-            "Individuals with post-stroke aphasia tend to recover their language to some extent; however, it remains challenging to reliably predict the nature and extent of recovery that will occur in the long term. "
+            content="Individuals with post-stroke aphasia tend to recover their language to some extent; however, it remains challenging to reliably predict the nature and extent of recovery that will occur in the long term. "
             "The aim of this study was to quantitatively predict language outcomes in the first year of recovery from aphasia across multiple domains of language and at multiple timepoints post-stroke. "
             "We recruited 217 patients with aphasia following acute left hemisphere ischaemic or haemorrhagic stroke and evaluated their speech and language function using the Quick Aphasia Battery acutely and then acquired longitudinal follow-up data at up to three timepoints post-stroke: 1 month (n = 102), 3 months (n = 98) and 1 year (n = 74). "
             "We used support vector regression to predict language outcomes at each timepoint using acute clinical imaging data, demographic variables and initial aphasia severity as input. "
@@ -130,7 +132,7 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
             role="user",
         ),
         oa.Message(
-            """{
+            content="""{
     "summary": [
         {
             "text": "<b>Aphasia</b> is a <b>problem</b> with <b>language</b> that can happen after <b>stroke</b>",
@@ -162,7 +164,7 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
 }""",
             role="assistant",
         ),
-        oa.Message(abstract),
+        oa.Message(content=abstract),
     ]
 
 
@@ -205,6 +207,6 @@ def generate_bullets(summary: Summary, abstract: str) -> None:
     for entry in response["summary"]:
         icons = []
         for keyword in entry["icon_keywords"]:
-            icons.append(Icon(keyword))
-        summary.bullets.append(Bullet(entry["text"], icons))
+            icons.append(Icon(keyword=keyword))
+        summary.bullets.append(Bullet(text=entry["text"], icons=icons))
     summary.rating = str(response["rating"])
