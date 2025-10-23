@@ -1,5 +1,5 @@
-import dataclasses
-from dataclasses import dataclass, field
+import pydantic.dataclasses
+from pydantic.dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, TypeGuard, TypeVar
 from ..logger import logger

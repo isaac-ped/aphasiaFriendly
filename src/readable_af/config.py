@@ -1,7 +1,7 @@
 import dataclasses
-from functools import cache, cached_property
+from functools import cache
 import os
-from dataclasses import dataclass
+from pydantic.dataclasses import dataclass
 from pathlib import Path
 from typing import ClassVar
 
@@ -78,7 +78,7 @@ class SecretFile:
             f.write(contents)
         return self.file_path
 
-    @cached_property
+    @property
     def contents(self) -> str:
         """Get the contents of the secret from env or file path."""
         if self.file_path.exists():
@@ -97,31 +97,31 @@ class Config:
 
     openai_org_id: str = "org-byzsYSY4AKLquKGVxYWLjnOv"
 
-    google_client_secrets_file: Path = dataclasses.field(
+    google_client_secrets_file: Path = pydantic.dataclasses.field(
         default_factory=SecretFile(
             "CREDENTIALS_JSON",
             _HERE.parent.parent / "credentials.json",
         ).get
     )
-    openai_api_key: str = dataclasses.field(
+    openai_api_key: str = pydantic.dataclasses.field(
         default_factory=RequiredEnvVar("OPENAI_API_KEY").get
     )
-    nounproject_api_key: str = dataclasses.field(
+    nounproject_api_key: str = pydantic.dataclasses.field(
         default_factory=RequiredEnvVar("NOUNPROJECT_API_KEY").get
     )
-    nounproject_secret: str = dataclasses.field(
+    nounproject_secret: str = pydantic.dataclasses.field(
         default_factory=RequiredEnvVar("NOUNPROJECT_SECRET").get
     )
-    recapcha_site_key: str = dataclasses.field(
+    recapcha_site_key: str = pydantic.dataclasses.field(
         default_factory=RequiredEnvVar("RECAPTCHA_SITE_KEY").get
     )
-    recapcha_secret: str = dataclasses.field(
+    recapcha_secret: str = pydantic.dataclasses.field(
         default_factory=RequiredEnvVar("RECAPTCHA_SECRET").get
     )
-    redis_host: str | None = dataclasses.field(
+    redis_host: str | None = pydantic.dataclasses.field(
         default_factory=EnvVar("REDIS_URL").get,
     )
-    redis_password: str | None = dataclasses.field(
+    redis_password: str | None = pydantic.dataclasses.field(
         default_factory=EnvVar("REDIS_PASSWORD").get
     )
 

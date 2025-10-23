@@ -1,6 +1,6 @@
 import dataclasses
 import json
-from dataclasses import dataclass
+from pydantic.dataclasses import dataclass
 from functools import cache
 from typing import Literal
 
