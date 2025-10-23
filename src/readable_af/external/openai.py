@@ -1,9 +1,5 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 import json
-<<<<<<< Updated upstream
-from pydantic.dataclasses import dataclass
-=======
->>>>>>> Stashed changes
 from functools import cache
 from typing import Literal
 

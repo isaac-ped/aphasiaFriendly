@@ -1,9 +1,4 @@
-<<<<<<< Updated upstream
-import pydantic.dataclasses
-from pydantic.dataclasses import dataclass, field
-=======
 from pydantic import BaseModel, Field
->>>>>>> Stashed changes
 from pathlib import Path
 from typing import Any
 
