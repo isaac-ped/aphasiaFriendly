@@ -11,7 +11,7 @@ dev:
 
 # Regenerate the requriements.txt file
 gen-requirements:
-    uv export -q --no-hashes --no-dev --locked -o requirements.txt
+    uv export -q --no-hashes --no-dev --locked --no-editable -o requirements.txt
 
 # Redeploy the website to production
 deploy: gen-requirements
