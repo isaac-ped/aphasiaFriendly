@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from pathlib import Path
-from typing import Any, TypeGuard, TypeVar, ClassVar
+from typing import Any, TypeGuard, TypeVar, ClassVar, List
 from ..logger import logger
 
 T = TypeVar("T")
@@ -137,3 +137,38 @@ class Summary(BaseModel):
             "metadata": self.metadata.asdict(),
             "bullets": [bullet.asdict() for bullet in self.bullets],
         }
+
+
+# Models for ChatGPT structured output (icon IDs/URLs excluded for post-processing)
+class SummaryEntry(BaseModel):
+    """A single bullet point in the summary with its icon keywords.
+
+    This represents what ChatGPT returns in structured output format.
+    Icon IDs and URLs are excluded - they will be filled in during post-processing.
+    """
+
+    text: str = Field(
+        description="The bullet point text with HTML <b> tags for important words/phrases"
+    )
+    icon_keywords: List[str] = Field(
+        default_factory=list,
+        description="0-3 icon keywords for this bullet point, ordered from most to least important",
+    )
+
+
+class ChatGPTSummaryResponse(BaseModel):
+    """The structured output response from ChatGPT for article summaries.
+
+    This is the format that ChatGPT returns via structured output.
+    Icon IDs and URLs are excluded - they will be filled in during post-processing.
+    """
+
+    summary: List[SummaryEntry] = Field(
+        description="List of 4-7 bullet points summarizing the article"
+    )
+    title: str = Field(description="A short, simple title for the paper")
+    rating: int = Field(
+        ge=1,
+        le=10,
+        description="Confidence rating between 1 and 10 for the response quality",
+    )
