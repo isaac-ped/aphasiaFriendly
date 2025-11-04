@@ -65,22 +65,23 @@ def completion_structured(
         ValueError: If the response cannot be parsed or validated
     """
 
-    logger.debug(
-        f"Using structured output with model: {response_model.__name__}"
-    )
-
+    logger.debug(f"Using structured output with model: {response_model.__name__}")
 
     message_dicts = [message.model_dump() for message in messages]
 
     try:
         # Call API directly with structured output (not using _completion_api to avoid modifying it)
         response = client().responses.parse(
-            model=model,
-            input=message_dicts,
-            text_format=response_model
+            model=model, input=json.dumps(message_dicts), text_format=response_model
         )
     except Exception as e:
         logger.error(f"Failed to get structured output from OpenAI API: {e}")
         raise
+
+    if response.error is not None:
+        raise ValueError(f"OpenAI API returned an error: {response.error.message}")
+
+    if response.output_parsed is None:
+        raise ValueError("Failed to parse structured output from OpenAI API")
 
     return response.output_parsed
