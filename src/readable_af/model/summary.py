@@ -1,8 +1,9 @@
-import dataclasses
-from dataclasses import dataclass, field
+from pydantic import BaseModel, Field
 from pathlib import Path
-from typing import Any, TypeGuard, TypeVar
+from typing import Any, TypeGuard, TypeVar, ClassVar
 from ..logger import logger
+
+T = TypeVar("T")
 
 
 class UnpopulatedException(Exception):
@@ -11,8 +12,7 @@ class UnpopulatedException(Exception):
     pass
 
 
-@dataclass
-class Icon:
+class Icon(BaseModel):
     keyword: str
     _url: str | None = None
     _icon: bytes | None = None
@@ -48,9 +48,7 @@ class Icon:
         self._icon = icon
         self._id = id
 
-    UNSET = object()
-
-    T = TypeVar("T")
+    UNSET: ClassVar[object] = object()
 
     def up_to_date(self, field: T | object = UNSET) -> TypeGuard[T]:
         """Check if the icon is up to date.
@@ -95,25 +93,23 @@ class Icon:
         return self
 
 
-@dataclass
-class Metadata:
+class Metadata(BaseModel):
     title: str
     authors: list[str]
     date: str
     simplified_title: str | None = None
 
     def asdict(self) -> dict[str, Any]:
-        return dataclasses.asdict(self)
+        return self.model_dump()
 
     @classmethod
     def fromdict(cls, input: dict[str, Any]):
         return cls(**input)
 
 
-@dataclass
-class Bullet:
+class Bullet(BaseModel):
     text: str
-    icons: list[Icon] = field(default_factory=list)
+    icons: list[Icon] = Field(default_factory=list)
 
     def calculate_checksum(self) -> int:
         return hash(self.text)
@@ -131,11 +127,10 @@ class Bullet:
         return self
 
 
-@dataclass
-class Summary:
+class Summary(BaseModel):
     metadata: Metadata
     rating: str = "N/A"
-    bullets: list[Bullet] = field(default_factory=list)
+    bullets: list[Bullet] = Field(default_factory=list)
 
     def asdict(self) -> dict[str, Any]:
         return {

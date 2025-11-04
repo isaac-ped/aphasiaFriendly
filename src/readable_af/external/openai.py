@@ -1,6 +1,5 @@
-import dataclasses
+from pydantic import BaseModel
 import json
-from dataclasses import dataclass
 from functools import cache
 from typing import Literal
 
@@ -17,11 +16,8 @@ def client():
     return OpenAI(api_key=Config.get().openai_api_key)
 
 
-@dataclass
-class Message:
+class Message(BaseModel):
     content: str
-    # Used to ensure that "role" is only ever passed as a keyword
-    _: dataclasses.KW_ONLY
     role: Literal["user", "assistant", "system"] = "user"
 
 
@@ -43,7 +39,7 @@ def _completion_api(messages: list[dict], model="gpt-4-1106-preview") -> ChatCom
 
 def completion(messages: list[Message], model="gpt-4-1106-preview") -> str:
     """Send a completion request to the OpenAI API and return the text of the response"""
-    message_dicts = [dataclasses.asdict(message) for message in messages]
+    message_dicts = [message.model_dump() for message in messages]
     response = _completion_api(message_dicts, model=model)
     str_response = response.choices[0].message.content
     assert str_response is not None

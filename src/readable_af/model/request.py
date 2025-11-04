@@ -1,12 +1,11 @@
-from dataclasses import dataclass, field
+from pydantic import BaseModel, Field
 from pathlib import Path
 from typing import Any
 
 from .summary import Summary
 
 
-@dataclass
-class Input:
+class Input(BaseModel):
     """User-provided input to a request."""
 
     file: Path | None = None
@@ -15,14 +14,13 @@ class Input:
     abstract: str | None = None
 
 
-@dataclass
-class Ctx:
+class Ctx(BaseModel):
     """Context for a request.
 
     Fields start as empty and will be filled over the course of the request.
     """
 
-    input: Input = field(default_factory=Input)
+    input: Input = Field(default_factory=Input)
     credentials: Any | None = None
     output_format: str = "pptx"
     file_contents: str | None = None
