@@ -1,9 +1,12 @@
-import json
-import yaml
-
 from readable_af.errors import AFException
 from ..external import openai as oa
-from readable_af.model.summary import Bullet, Metadata, Summary, Icon
+from readable_af.model.summary import (
+    Bullet,
+    Metadata,
+    Summary,
+    Icon,
+    ChatGPTSummaryResponse,
+)
 from ..logger import logger
 
 MODEL = "gpt-4o-2024-08-06"
@@ -105,19 +108,7 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
             # "- The words should be semantically related to the words in the article - for example, the word 'heartbeat' should not be used if the article is about musical beats.\n"
             # "- If the bullet point includes negation (e.g. 'not', 'no', 'never'), you should always return a phrase like\n"
             # "'Crossed out' or 'X' to reflect this.\n\n"
-            "Return your response in json format, matching the following schema: \n"
-            + """
-{
-    "summary": [
-        {
-            "text": "...",
-            "icon_keywords": [ ... ]
-        },
-    ],
-    "title": "A new title for the paper that is short and simpler",
-    "rating": <number between 1 and 10 rating your confidence in your response>
-}
-""",
+            "Return your response in the structured format that will be provided.",
             role="system",
         ),
         oa.Message(
@@ -168,45 +159,51 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
     ]
 
 
-def just_run_summary(abstract: str) -> dict:
+def just_run_summary(abstract: str) -> ChatGPTSummaryResponse:
+    """Generate a summary using structured output and return the validated response."""
     prompt = summary_prompt(abstract)
-    response = oa.completion(prompt, model=MODEL).strip()
-    if response.startswith("```json"):
-        logger.debug("Removing ```json prefix")
-        # Remove all lines starting with ````
-        response = "\n".join(
-            [line for line in response.split("\n") if not line.startswith("```")]
-        )
-    logger.info(f"Generated the following summary: {response}")
-    response = json.loads(response)
+    response = oa.completion_structured(
+        prompt, response_model=ChatGPTSummaryResponse, model=MODEL
+    )
+    logger.info(
+        f"Generated the following summary: {response.model_dump_json(indent=2)}"
+    )
     return response
 
 
 def generate_bullets(summary: Summary, abstract: str) -> None:
+    """Generate bullets for a summary using structured output from ChatGPT.
+
+    This function uses OpenAI's structured output feature to ensure the response
+    matches the expected format. Icon keywords are extracted, but icon IDs and URLs
+    are left blank for post-processing.
+    """
     prompt = summary_prompt(abstract)
-    response = oa.completion(prompt, model=MODEL).strip()
-    if response.startswith("```json"):
-        logger.debug("Removing ```json prefix")
-        # Remove all lines starting with ````
-        response = "\n".join(
-            [line for line in response.split("\n") if not line.startswith("```")]
-        )
-    logger.info(f"Generated the following summary: {response}")
+
     try:
-        response = json.loads(response)
-    except json.JSONDecodeError:
-        logger.warning("ChatGPT is doing something annoying with json. Trying yaml")
-        try:
-            response = yaml.safe_load(response)
-        except Exception as e:
-            logger.exception("Failed to parse response")
-            raise AFException(
-                "ChatGPT is providing an invalid response. Please try again later."
-            ) from e
-    summary.metadata.simplified_title = response["title"]
-    for entry in response["summary"]:
+        # Use structured output - this guarantees valid JSON matching our schema
+        response = oa.completion_structured(
+            prompt, response_model=ChatGPTSummaryResponse, model=MODEL
+        )
+        logger.info(
+            f"Generated structured summary: {response.model_dump_json(indent=2)}"
+        )
+    except Exception as e:
+        logger.exception("Failed to generate structured output from ChatGPT")
+        raise AFException(
+            "ChatGPT is providing an invalid response. Please try again later."
+        ) from e
+
+    # Populate the summary with the structured response
+    summary.metadata.simplified_title = response.title
+
+    # Convert the structured response to Summary bullets
+    # Note: Icon keywords are extracted, but IDs/URLs will be filled in during post-processing
+    for entry in response.summary:
         icons = []
-        for keyword in entry["icon_keywords"]:
+        for keyword in entry.icon_keywords:
+            # Create Icon objects with just the keyword - IDs/URLs will be populated later
             icons.append(Icon(keyword=keyword))
-        summary.bullets.append(Bullet(text=entry["text"], icons=icons))
-    summary.rating = str(response["rating"])
+        summary.bullets.append(Bullet(text=entry.text, icons=icons))
+
+    summary.rating = str(response.rating)

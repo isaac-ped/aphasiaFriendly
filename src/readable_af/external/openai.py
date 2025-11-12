@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 import json
 from functools import cache
-from typing import Literal
+from typing import Literal, TypeVar, Type
 
 from openai import OpenAI
 from openai.types.chat import ChatCompletion
@@ -9,6 +9,8 @@ from openai.types.chat import ChatCompletion
 from ..config import Config
 from ..logger import logger
 from .caching import cache_af
+
+T = TypeVar("T", bound=BaseModel)
 
 
 @cache
@@ -37,10 +39,49 @@ def _completion_api(messages: list[dict], model="gpt-4-1106-preview") -> ChatCom
     return client().chat.completions.create(model=model, messages=messages)  # type: ignore
 
 
-def completion(messages: list[Message], model="gpt-4-1106-preview") -> str:
+def completion(messages: list[Message], model: str = "gpt-4-1106-preview") -> str:
     """Send a completion request to the OpenAI API and return the text of the response"""
     message_dicts = [message.model_dump() for message in messages]
     response = _completion_api(message_dicts, model=model)
     str_response = response.choices[0].message.content
     assert str_response is not None
     return str_response
+
+
+def completion_structured(
+    messages: list[Message], response_model: Type[T], model: str = "gpt-4o-2024-08-06"
+) -> T:
+    """Send a completion request with structured output.
+
+    Args:
+        messages: List of messages to send to the API
+        response_model: Pydantic model class that defines the expected response structure
+        model: Model to use (must support structured output, e.g. gpt-4o-2024-08-06)
+
+    Returns:
+        An instance of response_model validated against the structured output
+
+    Raises:
+        ValueError: If the response cannot be parsed or validated
+    """
+
+    logger.debug(f"Using structured output with model: {response_model.__name__}")
+
+    message_dicts = [message.model_dump() for message in messages]
+
+    try:
+        # Call API directly with structured output (not using _completion_api to avoid modifying it)
+        response = client().responses.parse(
+            model=model, input=json.dumps(message_dicts), text_format=response_model
+        )
+    except Exception as e:
+        logger.error(f"Failed to get structured output from OpenAI API: {e}")
+        raise
+
+    if response.error is not None:
+        raise ValueError(f"OpenAI API returned an error: {response.error.message}")
+
+    if response.output_parsed is None:
+        raise ValueError("Failed to parse structured output from OpenAI API")
+
+    return response.output_parsed
