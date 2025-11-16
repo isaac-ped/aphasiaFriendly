@@ -13,7 +13,7 @@ class UnpopulatedException(Exception):
 
 
 class Icon(BaseModel):
-    keyword: str
+    keyword: str = Field(description="A keyword for the icon, typically 1-3 words that represent the concept")
     _url: str | None = None
     _icon: bytes | None = None
     _id: int | None = None
@@ -97,7 +97,10 @@ class Metadata(BaseModel):
     title: str
     authors: list[str]
     date: str
-    simplified_title: str | None = None
+    simplified_title: str | None = Field(
+        default=None,
+        description="A short, simple title for the paper that's easier to understand"
+    )
 
     def asdict(self) -> dict[str, Any]:
         return self.model_dump()
@@ -108,8 +111,11 @@ class Metadata(BaseModel):
 
 
 class Bullet(BaseModel):
-    text: str
-    icons: list[Icon] = Field(default_factory=list)
+    text: str = Field(description="The bullet point text with HTML <b> tags for important words/phrases")
+    icons: list[Icon] = Field(
+        default_factory=list,
+        description="0-3 icon keywords for this bullet point, ordered from most to least important. Each Icon should have only the keyword field populated."
+    )
 
     def calculate_checksum(self) -> int:
         return hash(self.text)
@@ -139,36 +145,23 @@ class Summary(BaseModel):
         }
 
 
-# Models for ChatGPT structured output (icon IDs/URLs excluded for post-processing)
-class SummaryEntry(BaseModel):
-    """A single bullet point in the summary with its icon keywords.
-
-    This represents what ChatGPT returns in structured output format.
-    Icon IDs and URLs are excluded - they will be filled in during post-processing.
+class SummaryResponse(BaseModel):
+    """Response from ChatGPT structured output using the Summary structure.
+    
+    This uses the same structure as Summary (Bullet and Icon objects), but with 
+    optional metadata since it's already populated before calling OpenAI. 
+    OpenAI fills in bullets, rating, and simplified_title.
     """
 
-    text: str = Field(
-        description="The bullet point text with HTML <b> tags for important words/phrases"
+    metadata: Metadata | None = Field(
+        default=None,
+        description="Article metadata. If provided, only simplified_title will be used to update existing metadata."
     )
-    icon_keywords: List[str] = Field(
+    rating: str = Field(
+        default="N/A",
+        description="Confidence rating between 1 and 10 for the response quality, as a string"
+    )
+    bullets: list[Bullet] = Field(
         default_factory=list,
-        description="0-3 icon keywords for this bullet point, ordered from most to least important",
-    )
-
-
-class ChatGPTSummaryResponse(BaseModel):
-    """The structured output response from ChatGPT for article summaries.
-
-    This is the format that ChatGPT returns via structured output.
-    Icon IDs and URLs are excluded - they will be filled in during post-processing.
-    """
-
-    summary: List[SummaryEntry] = Field(
-        description="List of 4-7 bullet points summarizing the article"
-    )
-    title: str = Field(description="A short, simple title for the paper")
-    rating: int = Field(
-        ge=1,
-        le=10,
-        description="Confidence rating between 1 and 10 for the response quality",
+        description="List of 4-7 bullet points summarizing the article. Each bullet contains text with HTML <b> tags for important words/phrases, and 0-3 icon keywords (as Icon objects with just the keyword field populated)."
     )
