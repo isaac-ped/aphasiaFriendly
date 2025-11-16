@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from pathlib import Path
-from typing import Any, TypeGuard, TypeVar, ClassVar, List
+from typing import Any, TypeGuard, TypeVar, ClassVar
 from ..logger import logger
 
 T = TypeVar("T")
@@ -13,7 +13,9 @@ class UnpopulatedException(Exception):
 
 
 class Icon(BaseModel):
-    keyword: str = Field(description="A keyword for the icon, typically 1-3 words that represent the concept")
+    keyword: str = Field(
+        description="A keyword for the icon, typically 1-3 words that represent the concept"
+    )
     _url: str | None = None
     _icon: bytes | None = None
     _id: int | None = None
@@ -99,7 +101,7 @@ class Metadata(BaseModel):
     date: str
     simplified_title: str | None = Field(
         default=None,
-        description="A short, simple title for the paper that's easier to understand"
+        description="A short, simple title for the paper that's easier to understand",
     )
 
     def asdict(self) -> dict[str, Any]:
@@ -111,10 +113,12 @@ class Metadata(BaseModel):
 
 
 class Bullet(BaseModel):
-    text: str = Field(description="The bullet point text with HTML <b> tags for important words/phrases")
+    text: str = Field(
+        description="The bullet point text with HTML <b> tags for important words/phrases"
+    )
     icons: list[Icon] = Field(
         default_factory=list,
-        description="0-3 icon keywords for this bullet point, ordered from most to least important. Each Icon should have only the keyword field populated."
+        description="0-3 icon keywords for this bullet point, ordered from most to least important. Each Icon should have only the keyword field populated.",
     )
 
     def calculate_checksum(self) -> int:
@@ -147,21 +151,21 @@ class Summary(BaseModel):
 
 class SummaryResponse(BaseModel):
     """Response from ChatGPT structured output using the Summary structure.
-    
-    This uses the same structure as Summary (Bullet and Icon objects), but with 
-    optional metadata since it's already populated before calling OpenAI. 
+
+    This uses the same structure as Summary (Bullet and Icon objects), but with
+    optional metadata since it's already populated before calling OpenAI.
     OpenAI fills in bullets, rating, and simplified_title.
     """
 
     metadata: Metadata | None = Field(
         default=None,
-        description="Article metadata. If provided, only simplified_title will be used to update existing metadata."
+        description="Article metadata. If provided, only simplified_title will be used to update existing metadata.",
     )
     rating: str = Field(
         default="N/A",
-        description="Confidence rating between 1 and 10 for the response quality, as a string"
+        description="Confidence rating between 1 and 10 for the response quality, as a string",
     )
     bullets: list[Bullet] = Field(
         default_factory=list,
-        description="List of 4-7 bullet points summarizing the article. Each bullet contains text with HTML <b> tags for important words/phrases, and 0-3 icon keywords (as Icon objects with just the keyword field populated)."
+        description="List of 4-7 bullet points summarizing the article. Each bullet contains text with HTML <b> tags for important words/phrases, and 0-3 icon keywords (as Icon objects with just the keyword field populated).",
     )

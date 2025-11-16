@@ -1,10 +1,8 @@
 from readable_af.errors import AFException
 from ..external import openai as oa
 from readable_af.model.summary import (
-    Bullet,
     Metadata,
     Summary,
-    Icon,
     SummaryResponse,
 )
 from ..logger import logger
