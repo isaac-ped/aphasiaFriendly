@@ -180,9 +180,7 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
 def just_run_summary(abstract: str) -> Summary:
     """Generate a summary using structured output and return the validated response."""
     prompt = summary_prompt(abstract)
-    response = oa.completion_structured(
-        prompt, response_model=Summary, model=MODEL
-    )
+    response = oa.completion_structured(prompt, response_model=Summary, model=MODEL)
     logger.info(
         f"Generated the following summary: {response.model_dump_json(indent=2)}"
     )
@@ -201,9 +199,7 @@ def generate_bullets(summary: Summary, abstract: str) -> None:
     try:
         # Use structured output with Summary directly - OpenAI fills in the full Summary structure
         # This guarantees valid JSON matching our schema
-        response = oa.completion_structured(
-            prompt, response_model=Summary, model=MODEL
-        )
+        response = oa.completion_structured(prompt, response_model=Summary, model=MODEL)
         logger.info(
             f"Generated structured summary: {response.model_dump_json(indent=2)}"
         )
@@ -215,6 +211,9 @@ def generate_bullets(summary: Summary, abstract: str) -> None:
 
     # Populate the summary with the structured response
     # Use simplified_title from response metadata if provided
+    assert summary.metadata is not None, (
+        "Summary metadata must be populated before generating bullets"
+    )
     if response.metadata and response.metadata.simplified_title:
         summary.metadata.simplified_title = response.metadata.simplified_title
 

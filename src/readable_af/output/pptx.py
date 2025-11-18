@@ -9,6 +9,9 @@ class PPTXGenerator:
     def generate(summary: Summary, ctx: Ctx):
         out = ctx.output_file
         assert out is not None
+        assert summary.metadata is not None, (
+            "Summary metadata must be populated before generating output"
+        )
         out.parent.mkdir(exist_ok=True, parents=True)
         md_file = out.parent / "summary.md"
 

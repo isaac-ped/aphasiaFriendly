@@ -147,5 +147,3 @@ class Summary(BaseModel):
             "metadata": self.metadata.asdict() if self.metadata else None,
             "bullets": [bullet.asdict() for bullet in self.bullets],
         }
-
-
