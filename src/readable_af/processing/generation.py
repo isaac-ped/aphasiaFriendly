@@ -95,6 +95,7 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
             "These icon keywords, if viewed as their most likely picographic representation, "
             "should also give the reader a general idea of what the article was about. "
             "These icon keywords should be put in order from most to least important / informative for representing the text in the bullet point. "
+            "You can use the get_icon function to search for icons on The Noun Project to verify that appropriate icons exist for your keywords. "
             # "These will be used as queries to search for icons that would demonstrate the concepts represented in that bullet point. "
             # "Often, these key words will represent the words you put inside the html <b></b> tag. "
             # "Your search terms should abide by the following rules: \n "
