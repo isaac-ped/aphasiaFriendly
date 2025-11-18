@@ -80,6 +80,9 @@ class GoogleDocGenerator:
     @staticmethod
     def generate(summary: Summary, ctx: Ctx) -> None:
         assert ctx.credentials is not None
+        assert summary.metadata is not None, (
+            "Summary metadata must be populated before generating output"
+        )
         service = authenticate(ctx.credentials)
         # Make a temporary file to upload
         assert ctx.output_file is not None

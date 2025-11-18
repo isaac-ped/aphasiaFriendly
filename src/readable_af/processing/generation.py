@@ -1,11 +1,8 @@
 from readable_af.errors import AFException
 from ..external import openai as oa
 from readable_af.model.summary import (
-    Bullet,
     Metadata,
     Summary,
-    Icon,
-    ChatGPTSummaryResponse,
 )
 from ..logger import logger
 
@@ -124,34 +121,55 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
         ),
         oa.Message(
             content="""{
-    "summary": [
+    "bullets": [
         {
             "text": "<b>Aphasia</b> is a <b>problem</b> with <b>language</b> that can happen after <b>stroke</b>",
-            "icon_keywords": ["miscommunication","stroke"]
+            "icons": [
+                {"keyword": "miscommunication"},
+                {"keyword": "stroke"}
+            ]
         },
         {
-            "text": "Language usually <b>gets better</b>, but we can’t always <b>predict how much</b>",
-            "icon_keywords": ["prediction"]
+            "text": "Language usually <b>gets better</b>, but we can't always <b>predict how much</b>",
+            "icons": [
+                {"keyword": "prediction"}
+            ]
         },
         {
             "text": "We looked at a <b>big group</b> of <b>people</b> with <b>aphasia</b>, their <b>brains</b>, and their <b>language</b>",
-            "icon_keywords": ["brain","crowd","person talking"]
+            "icons": [
+                {"keyword": "brain"},
+                {"keyword": "crowd"},
+                {"keyword": "person talking"}
+            ]
         },
         {
             "text": "We used <b>math</b> to try and <b>predict language</b> across the <b>first year</b> after stroke",
-            "icon_keywords": ["regression","predict"]
+            "icons": [
+                {"keyword": "regression"},
+                {"keyword": "predict"}
+            ]
         },
         {
             "text": "This math did a <b>pretty good job</b> making predictions (about <b>60%</b> correct)!",
-            "icon_keywords": ["predict","test","check mark"]
+            "icons": [
+                {"keyword": "predict"},
+                {"keyword": "test"},
+                {"keyword": "check mark"}
+            ]
         },
         {
             "text": "We <b>hope</b> that more math like this will <b>help</b> doctors, therapists, researchers, and people with aphasia have <b>clearer expectations</b> about <b>aphasia recovery</b>",
-            "icon_keywords": []
+            "icons": []
         }
     ],
-    "title": "Using math and the brain to predict language recovery after stroke",
-    "rating":10
+    "rating": "10",
+    "metadata": {
+        "title": "Example Title",
+        "authors": ["Author Name"],
+        "date": "2024",
+        "simplified_title": "Using math and the brain to predict language recovery after stroke"
+    }
 }""",
             role="assistant",
         ),
@@ -159,12 +177,10 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
     ]
 
 
-def just_run_summary(abstract: str) -> ChatGPTSummaryResponse:
+def just_run_summary(abstract: str) -> Summary:
     """Generate a summary using structured output and return the validated response."""
     prompt = summary_prompt(abstract)
-    response = oa.completion_structured(
-        prompt, response_model=ChatGPTSummaryResponse, model=MODEL
-    )
+    response = oa.completion_structured(prompt, response_model=Summary, model=MODEL)
     logger.info(
         f"Generated the following summary: {response.model_dump_json(indent=2)}"
     )
@@ -175,16 +191,15 @@ def generate_bullets(summary: Summary, abstract: str) -> None:
     """Generate bullets for a summary using structured output from ChatGPT.
 
     This function uses OpenAI's structured output feature to ensure the response
-    matches the expected format. Icon keywords are extracted, but icon IDs and URLs
-    are left blank for post-processing.
+    matches the expected format. The Summary structure is used directly, with Icon
+    objects containing only keywords (IDs and URLs are left blank for post-processing).
     """
     prompt = summary_prompt(abstract)
 
     try:
-        # Use structured output - this guarantees valid JSON matching our schema
-        response = oa.completion_structured(
-            prompt, response_model=ChatGPTSummaryResponse, model=MODEL
-        )
+        # Use structured output with Summary directly - OpenAI fills in the full Summary structure
+        # This guarantees valid JSON matching our schema
+        response = oa.completion_structured(prompt, response_model=Summary, model=MODEL)
         logger.info(
             f"Generated structured summary: {response.model_dump_json(indent=2)}"
         )
@@ -195,15 +210,14 @@ def generate_bullets(summary: Summary, abstract: str) -> None:
         ) from e
 
     # Populate the summary with the structured response
-    summary.metadata.simplified_title = response.title
+    # Use simplified_title from response metadata if provided
+    assert summary.metadata is not None, (
+        "Summary metadata must be populated before generating bullets"
+    )
+    if response.metadata and response.metadata.simplified_title:
+        summary.metadata.simplified_title = response.metadata.simplified_title
 
-    # Convert the structured response to Summary bullets
-    # Note: Icon keywords are extracted, but IDs/URLs will be filled in during post-processing
-    for entry in response.summary:
-        icons = []
-        for keyword in entry.icon_keywords:
-            # Create Icon objects with just the keyword - IDs/URLs will be populated later
-            icons.append(Icon(keyword=keyword))
-        summary.bullets.append(Bullet(text=entry.text, icons=icons))
-
-    summary.rating = str(response.rating)
+    # Copy bullets directly - they already use the Summary structure with Icon objects
+    # Icons will have only the keyword field populated; IDs/URLs are filled in post-processing
+    summary.bullets = response.bullets
+    summary.rating = response.rating

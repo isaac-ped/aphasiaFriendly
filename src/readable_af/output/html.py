@@ -8,6 +8,9 @@ from readable_af.model.summary import Summary
 class HtmlGenerator:
     @staticmethod
     def generate_text(summary: Summary) -> str:
+        assert summary.metadata is not None, (
+            "Summary metadata must be populated before generating output"
+        )
         text = """
 
         <html>
