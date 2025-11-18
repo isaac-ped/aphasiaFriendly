@@ -138,34 +138,14 @@ class Bullet(BaseModel):
 
 
 class Summary(BaseModel):
-    metadata: Metadata
+    metadata: Metadata | None = None
     rating: str = "N/A"
     bullets: list[Bullet] = Field(default_factory=list)
 
     def asdict(self) -> dict[str, Any]:
         return {
-            "metadata": self.metadata.asdict(),
+            "metadata": self.metadata.asdict() if self.metadata else None,
             "bullets": [bullet.asdict() for bullet in self.bullets],
         }
 
 
-class SummaryResponse(BaseModel):
-    """Response from ChatGPT structured output using the Summary structure.
-
-    This uses the same structure as Summary (Bullet and Icon objects), but with
-    optional metadata since it's already populated before calling OpenAI.
-    OpenAI fills in bullets, rating, and simplified_title.
-    """
-
-    metadata: Metadata | None = Field(
-        default=None,
-        description="Article metadata. If provided, only simplified_title will be used to update existing metadata.",
-    )
-    rating: str = Field(
-        default="N/A",
-        description="Confidence rating between 1 and 10 for the response quality, as a string",
-    )
-    bullets: list[Bullet] = Field(
-        default_factory=list,
-        description="List of 4-7 bullet points summarizing the article. Each bullet contains text with HTML <b> tags for important words/phrases, and 0-3 icon keywords (as Icon objects with just the keyword field populated).",
-    )
