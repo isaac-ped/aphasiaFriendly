@@ -5,6 +5,7 @@ import keyword
 
 import requests
 from requests_oauthlib import OAuth1
+from pydantic import BaseModel, Field
 
 from ..config import Config
 from ..logger import logger
@@ -14,6 +15,30 @@ from .caching import cache_af
 
 # This is the ID for an icon on nounproject that we're using as a filler icon for the moment
 QUESTION_MARK_ID: int = 5525618
+
+
+class GetIconParams(BaseModel):
+    """Parameters for the get_icon function."""
+
+    keyword: str = Field(
+        description="The keyword to use to search for an icon on The Noun Project."
+    )
+
+
+class GetIconResult(BaseModel):
+    """Result of the get_icon function."""
+
+    icon_id: int | None
+    found: bool
+    keyword: str
+
+
+def _get_icon_function(params: GetIconParams) -> GetIconResult:
+    """Search for an icon from The Noun Project by keyword. Returns the icon ID if found."""
+    icon_ids = _find_icon_ids(params.keyword)
+    if not icon_ids:
+        return GetIconResult(icon_id=None, found=False, keyword=params.keyword)
+    return GetIconResult(icon_id=icon_ids[0], found=True, keyword=params.keyword)
 
 
 def set_to_default(icon: Icon):
