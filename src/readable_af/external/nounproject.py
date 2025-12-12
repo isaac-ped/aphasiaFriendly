@@ -64,7 +64,7 @@ def _find_icon_ids(query: str) -> list[int]:
     response = requests.get(
         endpoint,
         auth=auth,
-        params={"query": query, "limit_to_public_domain": 1, "include_svg": 0},
+        params={"query": query, "limit_to_public_domain": 0, "include_svg": 0},
     )
     content = json.loads(response.content.decode("utf-8"))
     if "icons" not in content:
