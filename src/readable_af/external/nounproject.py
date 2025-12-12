@@ -74,7 +74,7 @@ def _find_icon_ids(query: str) -> list[int]:
     return ids
 
 
-@cache_af(version="1", verify_fn=lambda x: x is not None)
+@cache_af(version="2", verify_fn=lambda x: x is not None)
 def _get_icon(icon_id: int) -> bytes | None:
     """Given an icon URL, get the icon itself"""
     cfg = Config.get()
