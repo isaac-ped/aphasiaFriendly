@@ -51,7 +51,7 @@ def populate(icon: Icon, blacklist: set[int]) -> bool:
     return False
 
 
-@cache_af(version="1")
+@cache_af(version="2")
 def _find_icon_ids(query: str) -> list[int]:
     """Search for icons matching a keyword.
 
