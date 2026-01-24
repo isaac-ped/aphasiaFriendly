@@ -77,7 +77,7 @@ SEARCH_TOOL = {
                 "description": "The maximum number of results to return. Defaults to 20",
             },
         },
-        "required": ["sign"],
+        "required": ["query"],
     },
 }
 
