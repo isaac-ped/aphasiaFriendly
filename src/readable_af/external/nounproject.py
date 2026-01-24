@@ -3,6 +3,7 @@ import copy
 import json
 import keyword
 
+from pydantic import BaseModel, Field
 import requests
 from requests_oauthlib import OAuth1
 
@@ -49,6 +50,41 @@ def populate(icon: Icon, blacklist: set[int]) -> bool:
         return True
     logger.warning(f"Used all of the icons for keyword {keyword}. Skipping")
     return False
+
+
+class IconSearchResult(BaseModel):
+    id_: str = Field(description="ID for the icon on nounproject")
+    tags: list[str] = Field(description="A list of tags associated with this icon")
+    collection_names: list[str] = Field(
+        description="A list of the collections this icon belongs to"
+    )
+
+
+def search(query: str, limit: int = 20) -> list[IconSearchResult]:
+    """Search for nounproject icons matching a query
+    
+    :param query: The keyword(s) with which to query nounproject
+    :param limit: The maximum number of icons to return
+    """
+    auth = OAuth1(Config.get().nounproject_api_key, Config.get().nounproject_secret)
+    endpoint = "https://api.thenounproject.com/v2/icon"
+
+    response = requests.get(
+        endpoint,
+        auth=auth,
+        params={"query": query, "limit_to_public_domain": 0, "include_svg": 0, "limit": limit   },
+    )
+    content = json.loads(response.content.decode("utf-8"))
+    if "icons" not in content:
+        return []
+    return [
+        IconSearchResult(
+            id_=icon["id"],
+            tags=icon["tags"],
+            collection_names=[collection["name"] for collection in icon["collections"]],
+        )
+        for icon in content["icons"]
+    ]
 
 
 @cache_af(version="2")
