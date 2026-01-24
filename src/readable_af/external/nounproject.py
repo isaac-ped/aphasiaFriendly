@@ -51,14 +51,16 @@ def populate(icon: Icon, blacklist: set[int]) -> bool:
     logger.warning(f"Used all of the icons for keyword {keyword}. Skipping")
     return False
 
+
 class IconSearchResult(BaseModel):
-    source: IconSource = IconSource.NOUNPROJECT
     id_: str = Field(description="ID for the icon on nounproject")
     tags: list[str] = Field(description="A list of tags associated with this icon")
-    collection_names: list[str] = Field(description="A list of the collections this icon belongs to")
+    collection_names: list[str] = Field(
+        description="A list of the collections this icon belongs to"
+    )
 
 
-def search(query: str, limit: int = 20) -> list[SearchResult]:
+def search(query: str, limit: int = 20) -> list[IconSearchResult]:
     """Search for nounproject icons matching a query"""
     auth = OAuth1(Config.get().nounproject_api_key, Config.get().nounproject_secret)
     endpoint = "https://api.thenounproject.com/v2/icon"
@@ -72,13 +74,10 @@ def search(query: str, limit: int = 20) -> list[SearchResult]:
     if "icons" not in content:
         return []
     return [
-        SearchResult(
-            source=IconSource.NOUNPROJECT,
-            id=icon["id"],
+        IconSearchResult(
+            id_=icon["id"],
             tags=icon["tags"],
-            collection_names=[
-                collection["name"] for collection in icon["collections"]
-            ]
+            collection_names=[collection["name"] for collection in icon["collections"]],
         )
         for icon in content["icons"]
     ]
