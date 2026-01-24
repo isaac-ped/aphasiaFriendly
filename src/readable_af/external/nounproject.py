@@ -68,7 +68,7 @@ def search(query: str, limit: int = 20) -> list[IconSearchResult]:
     response = requests.get(
         endpoint,
         auth=auth,
-        params={"query": query, "limit_to_public_domain": 0, "include_svg": 0},
+        params={"query": query, "limit_to_public_domain": 0, "include_svg": 0, "limit": limit},
     )
     content = json.loads(response.content.decode("utf-8"))
     if "icons" not in content:
