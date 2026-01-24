@@ -60,9 +60,31 @@ class IconSearchResult(BaseModel):
     )
 
 
+# Definition of the "search" function as a tool, apporopriate for openAI use
+SEARCH_TOOL = {
+    "type": "function",
+    "name": "search_nounproject",
+    "description": "Search nounproject for icons that match the given query",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "query": {
+                "type": "string",
+                "description": "A keyword or set of keywords to search for in nounproject's API ",
+            },
+            "limit": {
+                "type": "integer",
+                "description": "The maximum number of results to return. Defaults to 20",
+            },
+        },
+        "required": ["sign"],
+    },
+}
+
+
 def search(query: str, limit: int = 20) -> list[IconSearchResult]:
     """Search for nounproject icons matching a query
-    
+
     :param query: The keyword(s) with which to query nounproject
     :param limit: The maximum number of icons to return
     """
@@ -72,7 +94,12 @@ def search(query: str, limit: int = 20) -> list[IconSearchResult]:
     response = requests.get(
         endpoint,
         auth=auth,
-        params={"query": query, "limit_to_public_domain": 0, "include_svg": 0, "limit": limit   },
+        params={
+            "query": query,
+            "limit_to_public_domain": 0,
+            "include_svg": 0,
+            "limit": limit,
+        },
     )
     content = json.loads(response.content.decode("utf-8"))
     if "icons" not in content:
