@@ -8,7 +8,7 @@
     "**/.cache": true,
     "**/.venv": true
   },
-  "python.languageServer": "None",
+  "python.languageServer": "Pylance",
   "python.analysis.typeCheckingMode": "standard",
   "python.analysis.diagnosticMode": "workspace",
   "pylint.enabled": false,
