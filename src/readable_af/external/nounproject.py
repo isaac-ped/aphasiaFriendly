@@ -61,14 +61,18 @@ class IconSearchResult(BaseModel):
 
 
 def search(query: str, limit: int = 20) -> list[IconSearchResult]:
-    """Search for nounproject icons matching a query"""
+    """Search for nounproject icons matching a query
+    
+    :param query: The keyword(s) with which to query nounproject
+    :param limit: The maximum number of icons to return
+    """
     auth = OAuth1(Config.get().nounproject_api_key, Config.get().nounproject_secret)
     endpoint = "https://api.thenounproject.com/v2/icon"
 
     response = requests.get(
         endpoint,
         auth=auth,
-        params={"query": query, "limit_to_public_domain": 0, "include_svg": 0, "limit": limit},
+        params={"query": query, "limit_to_public_domain": 0, "include_svg": 0, "limit": limit   },
     )
     content = json.loads(response.content.decode("utf-8"))
     if "icons" not in content:
