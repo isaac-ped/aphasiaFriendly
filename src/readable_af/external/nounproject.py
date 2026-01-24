@@ -84,7 +84,7 @@ def search(query: str, limit: int = 20) -> list[SearchResult]:
     ]
 
 
-@cache_af(version="1")
+@cache_af(version="2")
 def _find_icon_ids(query: str) -> list[int]:
     """Search for icons matching a keyword.
 
@@ -97,7 +97,7 @@ def _find_icon_ids(query: str) -> list[int]:
     response = requests.get(
         endpoint,
         auth=auth,
-        params={"query": query, "limit_to_public_domain": 1, "include_svg": 0},
+        params={"query": query, "limit_to_public_domain": 0, "include_svg": 0},
     )
     content = json.loads(response.content.decode("utf-8"))
     if "icons" not in content:
@@ -107,7 +107,7 @@ def _find_icon_ids(query: str) -> list[int]:
     return ids
 
 
-@cache_af(version="1", verify_fn=lambda x: x is not None)
+@cache_af(version="2", verify_fn=lambda x: x is not None)
 def _get_icon(icon_id: int) -> bytes | None:
     """Given an icon URL, get the icon itself"""
     cfg = Config.get()
