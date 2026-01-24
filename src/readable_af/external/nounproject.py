@@ -7,8 +7,6 @@ from pydantic import BaseModel, Field
 import requests
 from requests_oauthlib import OAuth1
 
-from ..model.intermediate import IconSource, SearchResult
-
 from ..config import Config
 from ..logger import logger
 from ..model.summary import Icon
@@ -52,6 +50,12 @@ def populate(icon: Icon, blacklist: set[int]) -> bool:
         return True
     logger.warning(f"Used all of the icons for keyword {keyword}. Skipping")
     return False
+
+class IconSearchResult(BaseModel):
+    source: IconSource = IconSource.NOUNPROJECT
+    id_: str = Field(description="ID for the icon on nounproject")
+    tags: list[str] = Field(description="A list of tags associated with this icon")
+    collection_names: list[str] = Field(description="A list of the collections this icon belongs to")
 
 
 def search(query: str, limit: int = 20) -> list[SearchResult]:
