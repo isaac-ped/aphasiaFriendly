@@ -3,11 +3,8 @@ import copy
 import json
 import keyword
 
-from pydantic import BaseModel, Field
 import requests
 from requests_oauthlib import OAuth1
-
-from ..model.intermediate import IconSource, SearchResult
 
 from ..config import Config
 from ..logger import logger
@@ -54,33 +51,7 @@ def populate(icon: Icon, blacklist: set[int]) -> bool:
     return False
 
 
-def search(query: str, limit: int = 20) -> list[SearchResult]:
-    """Search for nounproject icons matching a query"""
-    auth = OAuth1(Config.get().nounproject_api_key, Config.get().nounproject_secret)
-    endpoint = "https://api.thenounproject.com/v2/icon"
-
-    response = requests.get(
-        endpoint,
-        auth=auth,
-        params={"query": query, "limit_to_public_domain": 0, "include_svg": 0},
-    )
-    content = json.loads(response.content.decode("utf-8"))
-    if "icons" not in content:
-        return []
-    return [
-        SearchResult(
-            source=IconSource.NOUNPROJECT,
-            id=icon["id"],
-            tags=icon["tags"],
-            collection_names=[
-                collection["name"] for collection in icon["collections"]
-            ]
-        )
-        for icon in content["icons"]
-    ]
-
-
-@cache_af(version="1")
+@cache_af(version="2")
 def _find_icon_ids(query: str) -> list[int]:
     """Search for icons matching a keyword.
 
@@ -93,7 +64,7 @@ def _find_icon_ids(query: str) -> list[int]:
     response = requests.get(
         endpoint,
         auth=auth,
-        params={"query": query, "limit_to_public_domain": 1, "include_svg": 0},
+        params={"query": query, "limit_to_public_domain": 0, "include_svg": 0},
     )
     content = json.loads(response.content.decode("utf-8"))
     if "icons" not in content:
@@ -103,7 +74,7 @@ def _find_icon_ids(query: str) -> list[int]:
     return ids
 
 
-@cache_af(version="1", verify_fn=lambda x: x is not None)
+@cache_af(version="2", verify_fn=lambda x: x is not None)
 def _get_icon(icon_id: int) -> bytes | None:
     """Given an icon URL, get the icon itself"""
     cfg = Config.get()
