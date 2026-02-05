@@ -17,7 +17,6 @@ class Icon(BaseModel):
         description="A keyword for the icon, typically 1-3 words that represent the concept"
     )
     _icon: bytes | None = None
-    #_id: int | None = None
     id: int = Field(
         description="The id for this icon on NounProject"
     )
@@ -31,18 +30,11 @@ class Icon(BaseModel):
             raise UnpopulatedException("Icon not populated")
         return self._icon
 
-    #@property
-    #def id(self) -> int:
-    #    if not self.up_to_date(self._id):
-    #        raise UnpopulatedException("Icon not populated")
-    #    return self._id
-
     def __repr__(self):
         return f"Icon<{self.keyword}:{self.id}>"
 
-    def populate(self,  icon: bytes): #, id: int):
+    def populate(self,  icon: bytes): 
         self._icon = icon
-    #    self._id = id
 
     UNSET: ClassVar[object] = object()
 
@@ -82,7 +74,6 @@ class Icon(BaseModel):
         )
         if input["_checksum"] != self.calculate_checksum():
             logger.info("Icon checksum mismatch, resetting")
-            #self.id = None
         return self
 
 

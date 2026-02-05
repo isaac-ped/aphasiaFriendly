@@ -14,45 +14,6 @@ from .caching import cache_af
 
 from openai.types.responses import FunctionToolParam
 
-# This is the ID for an icon on nounproject that we're using as a filler icon for the moment
-QUESTION_MARK_ID: int = 5525618
-
-
-#def set_to_default(icon: Icon):
-#    """Used if we can't find any icons for a keyword.
-#    Sets the icon to the QUESTION_MARK icon with some accompanying text
-#    """
-#    contents = get_icon(QUESTION_MARK_ID)
-#    if contents is not None:
-#        icon.populate("", contents, QUESTION_MARK_ID)
-
-
-#def populate(icon: Icon, blacklist: set[int]) -> bool:
-#    """Populate an icon containing a keyword with its image data.
-#    :returns: True if the icon was successfully populated. False if keyword search failed.
-#    """
-#    icon_ids = _find_icon_ids(icon.keyword)
-#    if not icon_ids:
-#        logger.debug(f"Could not find any icons for keyword {icon.keyword}")
-#        return False
-#    for icon_id in icon_ids:
-#        if icon_id in blacklist:
-#            logger.debug(f"Skipping icon {icon_id}")
-#            continue
-#        logger.info("Fetching icon %s for %s", icon_id, icon.keyword)
-#        # icon_url = _get_icon_url(icon_id)
-#        contents = get_icon(icon_id)
-#        if contents is None:
-#            blacklist.add(icon_id)
-#            continue
-#        icon.populate("", contents, icon_id)
-#        logger.info(f"Using icon {icon_id} for {icon}")
-#        # blacklist.add(icon_id)
-#        return True
-#    logger.warning(f"Used all of the icons for keyword {keyword}. Skipping")
-#    return False
-
-
 class IconSearchResult(BaseModel):
     id_: str = Field(description="ID for the icon on nounproject")
     tags: list[str] = Field(description="A list of tags associated with this icon")
