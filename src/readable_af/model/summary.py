@@ -70,7 +70,7 @@ class Icon(BaseModel):
     def fromdict(cls, input: dict[str, Any]):
         self = cls(
             keyword=input["keyword"],
-            id=input["id"],#"_id"],
+            id=input["id"]
         )
         if input["_checksum"] != self.calculate_checksum():
             logger.info("Icon checksum mismatch, resetting")
