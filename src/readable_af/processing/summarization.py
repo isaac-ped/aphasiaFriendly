@@ -43,8 +43,6 @@ def summarize(ctx: Ctx) -> Summary:
 
     summary = Summary(metadata=metadata, bullets=[])
     generation.generate_bullets(summary, abstract)
-    # icon_keywords = generation.generate_icon_keywords(summary.bullets)
-    # used_ids: set[int] = set()
 
     get_icon_contents(summary)
 
@@ -56,11 +54,6 @@ def reload(input_file: Path) -> Summary:
         input = yaml.safe_load(f)
     metadata = Metadata.fromdict(input["metadata"])
     bullets = [Bullet.fromdict(bullet) for bullet in input["bullets"]]
-
-    # used_ids: set[int] = set()
-
-    # for bullet in bullets:
-    #    get_bullet_icons(bullet, used_ids)
 
     return Summary(
         metadata=metadata,
