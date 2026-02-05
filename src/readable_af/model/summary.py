@@ -16,19 +16,14 @@ class Icon(BaseModel):
     keyword: str = Field(
         description="A keyword for the icon, typically 1-3 words that represent the concept"
     )
-    _url: str | None = None
     _icon: bytes | None = None
-    _id: int | None = None
+    #_id: int | None = None
+    id: int = Field(
+        description="The id for this icon on NounProject"
+    )
 
     def calculate_checksum(self) -> int:
-        return hash((self.keyword, self._id))
-
-    # Use properties to ensure setting the icon also sets the checksum
-    @property
-    def url(self) -> str:
-        if not self.up_to_date(self._url):
-            raise UnpopulatedException("Icon not populated")
-        return self._url
+        return hash((self.keyword, self.id))#_id))
 
     @property
     def icon(self) -> bytes:
@@ -36,19 +31,18 @@ class Icon(BaseModel):
             raise UnpopulatedException("Icon not populated")
         return self._icon
 
-    @property
-    def id(self) -> int:
-        if not self.up_to_date(self._id):
-            raise UnpopulatedException("Icon not populated")
-        return self._id
+    #@property
+    #def id(self) -> int:
+    #    if not self.up_to_date(self._id):
+    #        raise UnpopulatedException("Icon not populated")
+    #    return self._id
 
     def __repr__(self):
-        return f"Icon<{self.keyword}:{self._id}>"
+        return f"Icon<{self.keyword}:{self.id}>"
 
-    def populate(self, icon_url: str, icon: bytes, id: int):
-        self._url = icon_url
+    def populate(self,  icon: bytes): #, id: int):
         self._icon = icon
-        self._id = id
+    #    self._id = id
 
     UNSET: ClassVar[object] = object()
 
@@ -76,8 +70,7 @@ class Icon(BaseModel):
     def asdict(self) -> dict[str, Any]:
         return {
             "keyword": self.keyword,
-            "_url": self._url,
-            "_id": self._id,
+            "id": self.id,
             "_checksum": self.calculate_checksum(),
         }
 
@@ -85,13 +78,11 @@ class Icon(BaseModel):
     def fromdict(cls, input: dict[str, Any]):
         self = cls(
             keyword=input["keyword"],
-            _url=input["_url"],
-            _id=input["_id"],
+            id=input["id"],#"_id"],
         )
         if input["_checksum"] != self.calculate_checksum():
             logger.info("Icon checksum mismatch, resetting")
-            self._url = None
-            self._id = None
+            #self.id = None
         return self
 
 
@@ -99,8 +90,7 @@ class Metadata(BaseModel):
     title: str
     authors: list[str]
     date: str
-    simplified_title: str | None = Field(
-        default=None,
+    simplified_title: str = Field(
         description="A short, simple title for the paper that's easier to understand",
     )
 
