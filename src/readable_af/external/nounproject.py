@@ -11,6 +11,7 @@ from ..config import Config
 from ..logger import logger
 from ..model.summary import Icon
 from .caching import cache_af
+from ..processing import generation
 
 
 # This is the ID for an icon on nounproject that we're using as a filler icon for the moment
@@ -55,6 +56,8 @@ def populate(icon: Icon, blacklist: set[int]) -> bool:
     :returns: True if the icon was successfully populated. False if keyword search failed.
     """
     icon_ids = _find_icon_ids(icon.keyword)
+    icon_candidates = []
+
     if not icon_ids:
         logger.debug(f"Could not find any icons for keyword {icon.keyword}")
         return False
@@ -68,11 +71,16 @@ def populate(icon: Icon, blacklist: set[int]) -> bool:
         if contents is None:
             blacklist.add(icon_id)
             continue
-        icon.populate("", contents, icon_id)
-        logger.info(f"Using icon {icon_id} for {icon}")
+        icon_candidates.append({
+            "id": icon_id,
+            "name": _get_icon_name(icon_id)
+        })
+        selected_icon_id = generation.select_icon(icon.keyword, icon_candidates)
+        icon.populate("", contents, selected_icon_id)
+        logger.info(f"Using icon {selected_icon_id} for {icon}")
         # blacklist.add(icon_id)
         return True
-    logger.warning(f"Used all of the icons for keyword {keyword}. Skipping")
+    logger.warning(f"Used all of the icons for keyword {icon.keyword}. Skipping")
     return False
 
 
@@ -89,7 +97,7 @@ def _find_icon_ids(query: str) -> list[int]:
     response = requests.get(
         endpoint,
         auth=auth,
-        params={"query": query, "limit_to_public_domain": 1, "include_svg": 0},
+        params={"query": query, "limit_to_public_domain": 0, "include_svg": 0},
     )
     content = json.loads(response.content.decode("utf-8"))
     if "icons" not in content:
@@ -121,3 +129,14 @@ def _get_icon(icon_id: int) -> bytes | None:
         return None
 
     return b64decode(content["base64_encoded_file"])
+
+@cache_af(version="1", verify_fn=lambda x: x is not None)
+def _get_icon_name(icon_id: int) -> str | None:
+    """Given an icon ID, get the icon name"""
+    cfg = Config.get()
+    auth = OAuth1(cfg.nounproject_api_key, cfg.nounproject_secret)
+    endpoint = f"https://api.thenounproject.com/v2/icon/{icon_id}/download"
+    response = requests.get(
+        endpoint, auth=auth, params={"color": "000000", "filetype": "png", "size": 100, "name": "true"}
+    )
+    return content["name"]

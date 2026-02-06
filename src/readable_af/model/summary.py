@@ -94,6 +94,8 @@ class Icon(BaseModel):
             self._id = None
         return self
 
+class IconSelection(BaseModel):
+    id: int
 
 class Metadata(BaseModel):
     title: str

@@ -1,10 +1,13 @@
 from readable_af.errors import AFException
 from ..external import openai as oa
 from readable_af.model.summary import (
+    IconSelection,
     Metadata,
     Summary,
 )
 from ..logger import logger
+
+import json
 
 MODEL = "gpt-4o-2024-08-06"
 
@@ -222,3 +225,39 @@ def generate_bullets(summary: Summary, abstract: str) -> None:
     # Icons will have only the keyword field populated; IDs/URLs are filled in post-processing
     summary.bullets = response.bullets
     summary.rating = response.rating
+
+def select_icon(keyword: str, candidates: list[dict]) -> int:
+    prompt_text = f"""You are selecting a Noun Project icon from a list of candidates.
+
+Keyword:
+{keyword}
+
+Icon candidates (each has a fixed ID — you must choose one of these IDs):
+{json.dumps(candidates, indent=2)}
+
+Return the icon ID that best matches the keyword as structured output, only outputing JSON.
+
+You must select an icon.
+"""
+    messages = [
+        oa.Message(
+            content="You are an assistant that selects the best icon from a list of candidates based on a keyword. "
+            "You must return the icon ID that best matches the keyword.",
+            role="system",
+        ),
+        oa.Message(content=prompt_text),
+    ]
+
+    try:
+        # Use structured output with IconSelection directly - OpenAI fills in the full IconSelection structure
+        # This guarantees valid JSON matching our schema
+        response = oa.completion_structured(messages, response_model=IconSelection, model=MODEL)
+        logger.info(
+            f"Selected best icon: {response.model_dump_json(indent=2)}"
+        )
+    except Exception as e:
+        logger.exception("Failed to generate structured output from ChatGPT")
+        raise AFException(
+            "ChatGPT is providing an invalid response. Please try again later."
+        ) from e
+    return response.id
