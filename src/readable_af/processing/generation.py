@@ -6,7 +6,7 @@ from readable_af.model.summary import (
 )
 from ..logger import logger
 
-MODEL = "gpt-5"
+MODEL = "gpt-5-mini-2025-08-07"
 
 
 def metadata_prompt(preamble: str) -> list[oa.Message]:
