@@ -42,7 +42,7 @@ SEARCH_TOOL = FunctionToolParam(
 )
 
 
-def search(query: str, limit: int = 10) -> list[IconSearchResult]:
+def search(query: str, limit: int = 20) -> list[IconSearchResult]:
     """Search for nounproject icons matching a query
 
     :param query: The keyword(s) with which to query nounproject
