@@ -17,12 +17,10 @@ class Icon(BaseModel):
         description="A keyword for the icon, typically 1-3 words that represent the concept"
     )
     _icon: bytes | None = None
-    id: int = Field(
-        description="The id for this icon on NounProject"
-    )
+    id: int = Field(description="The id for this icon on NounProject")
 
     def calculate_checksum(self) -> int:
-        return hash((self.keyword, self.id))#_id))
+        return hash((self.keyword, self.id))  # _id))
 
     @property
     def icon(self) -> bytes:
@@ -33,7 +31,7 @@ class Icon(BaseModel):
     def __repr__(self):
         return f"Icon<{self.keyword}:{self.id}>"
 
-    def populate(self,  icon: bytes): 
+    def populate(self, icon: bytes):
         self._icon = icon
 
     UNSET: ClassVar[object] = object()
@@ -68,10 +66,7 @@ class Icon(BaseModel):
 
     @classmethod
     def fromdict(cls, input: dict[str, Any]):
-        self = cls(
-            keyword=input["keyword"],
-            id=input["id"]
-        )
+        self = cls(keyword=input["keyword"], id=input["id"])
         if input["_checksum"] != self.calculate_checksum():
             logger.info("Icon checksum mismatch, resetting")
         return self

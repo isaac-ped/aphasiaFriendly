@@ -7,16 +7,17 @@ import yaml
 from ..model.request import Ctx
 
 from ..external import nounproject
-from ..model.summary import Bullet, Icon, Metadata, Summary
+from ..model.summary import Bullet, Metadata, Summary
 from . import generation
 
 
 def get_icon_contents(summary: Summary):
     for bullet in summary.bullets:
         for icon in bullet.icons:
-            contents=nounproject.get_icon(icon_id=icon.id)
+            contents = nounproject.get_icon(icon_id=icon.id)
             assert contents is not None
             icon.populate(contents)
+
 
 def summarize(ctx: Ctx) -> Summary:
     # Get the file extension from the input file
@@ -32,13 +33,18 @@ def summarize(ctx: Ctx) -> Summary:
             title = contents[0].strip()
             authors = contents[1].strip()
             abstract = "\n".join(contents[2:])
-            metadata = Metadata(title=title, authors=authors.split(","), date="", simplified_title="")
+            metadata = Metadata(
+                title=title, authors=authors.split(","), date="", simplified_title=""
+            )
     else:
         abstract = input.abstract
         assert input.title is not None
         assert input.authors is not None
         metadata = Metadata(
-            title=input.title, authors=input.authors.split(","), date="", simplified_title=""
+            title=input.title,
+            authors=input.authors.split(","),
+            date="",
+            simplified_title="",
         )
 
     summary = Summary(metadata=metadata, bullets=[])

@@ -39,7 +39,7 @@ def generate_metadata(preamble: str) -> Metadata:
         title=title.strip(),
         authors=[a.strip() for a in authors.split(",")],
         date=date.strip(),
-        simplified_title=""
+        simplified_title="",
     )
 
 
@@ -72,7 +72,7 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
             content="You are an assistant that processes scientific articles into a few simple sentences "
             "that are understandable by someone that has difficulty reading. "
             "You will be passed the abstract of a scientific article and asked to summarize it. "
-            "Your summary should produce 4-7 sentences of summary. " 
+            "Your summary should produce 4-7 sentences of summary. "
             "Each sentence should be shorter than 150 characters, and should use very simple syntax and vocabulary. "
             "The words that you use should be as simple and common as possible, "
             "while reflecting the specific content of the abstract. "

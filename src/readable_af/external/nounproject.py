@@ -1,7 +1,6 @@
 from base64 import b64decode
 import copy
 import json
-import keyword
 
 from pydantic import BaseModel, Field
 import requests
@@ -9,10 +8,10 @@ from requests_oauthlib import OAuth1
 
 from ..config import Config
 from ..logger import logger
-from ..model.summary import Icon
 from .caching import cache_af
 
 from openai.types.responses import FunctionToolParam
+
 
 class IconSearchResult(BaseModel):
     id_: str = Field(description="ID for the icon on nounproject")
@@ -35,7 +34,9 @@ SEARCH_TOOL = FunctionToolParam(
                 "description": "A keyword or set of keywords to search for in nounproject's API ",
             },
         },
-        "required": ["query",],
+        "required": [
+            "query",
+        ],
         "additionalProperties": False,
     },
 )

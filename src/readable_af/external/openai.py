@@ -9,10 +9,10 @@ from openai.types.chat import ChatCompletion
 from ..config import Config
 from ..logger import logger
 from .caching import cache_af
+from . import nounproject
 
 T = TypeVar("T", bound=BaseModel)
 
-from . import nounproject
 
 @cache
 def client():
@@ -73,7 +73,10 @@ def completion_structured(
     try:
         # Call API directly with structured output (not using _completion_api to avoid modifying it)
         response = client().responses.parse(
-            model=model, input=json.dumps(message_dicts), text_format=response_model, tools=[nounproject.SEARCH_TOOL]
+            model=model,
+            input=json.dumps(message_dicts),
+            text_format=response_model,
+            tools=[nounproject.SEARCH_TOOL],
         )
     except Exception as e:
         logger.error(f"Failed to get structured output from OpenAI API: {e}")
@@ -82,32 +85,43 @@ def completion_structured(
     if response.error is not None:
         raise ValueError(f"OpenAI API returned an error: {response.error.message}")
 
-    i=0
+    i = 0
     while response.output_parsed is None:
-        i+=1
-        logger.info(f'looping for {i}th time')
-        if i>20:
-           raise ValueError("Failed to parse structured output from OpenAI API")
+        i += 1
+        logger.info(f"looping for {i}th time")
+        if i > 20:
+            raise ValueError("Failed to parse structured output from OpenAI API")
 
-        for item in response.output: # for each of its responses
-            if item.type == "function_call": # if that response was requesting a call to one of the tools we gave it
-                if item.name == "search_nounproject": # and that tool was the tool that searches nounproject's API
+        for item in response.output:  # for each of its responses
+            if (
+                item.type == "function_call"
+            ):  # if that response was requesting a call to one of the tools we gave it
+                if (
+                    item.name == "search_nounproject"
+                ):  # and that tool was the tool that searches nounproject's API
                     # run that function/tool
                     arguments = json.loads(item.arguments)
-                    rtn = nounproject.search(**arguments) # 
+                    rtn = nounproject.search(**arguments)  #
 
-                    logger.info(f'searched nounproject with arguments {arguments} with response {rtn}')
+                    logger.info(
+                        f"searched nounproject with arguments {arguments} with response {rtn}"
+                    )
 
-                    # append function call results to the input the model is going to get (which includes all past interactions) 
+                    # append function call results to the input the model is going to get (which includes all past interactions)
                     rtn_dict = [r.model_dump() for r in rtn]
-                    message_dicts.append({
-                        "type": "function_call_output",
-                        "call_id": item.call_id,
-                        "output": json.dumps(rtn_dict)
-                    })
+                    message_dicts.append(
+                        {
+                            "type": "function_call_output",
+                            "call_id": item.call_id,
+                            "output": json.dumps(rtn_dict),
+                        }
+                    )
 
         response = client().responses.parse(
-                model=model, input=json.dumps(message_dicts), text_format=response_model, tools=[nounproject.SEARCH_TOOL]
-            )
+            model=model,
+            input=json.dumps(message_dicts),
+            text_format=response_model,
+            tools=[nounproject.SEARCH_TOOL],
+        )
 
     return response.output_parsed
