@@ -1,7 +1,6 @@
 from base64 import b64decode
 import copy
 import json
-import keyword
 
 from pydantic import BaseModel, Field
 import requests
@@ -9,47 +8,9 @@ from requests_oauthlib import OAuth1
 
 from ..config import Config
 from ..logger import logger
-from ..model.summary import Icon
 from .caching import cache_af
 
-
-# This is the ID for an icon on nounproject that we're using as a filler icon for the moment
-QUESTION_MARK_ID: int = 5525618
-
-
-def set_to_default(icon: Icon):
-    """Used if we can't find any icons for a keyword.
-    Sets the icon to the QUESTION_MARK icon with some accompanying text
-    """
-    contents = _get_icon(QUESTION_MARK_ID)
-    if contents is not None:
-        icon.populate("", contents, QUESTION_MARK_ID)
-
-
-def populate(icon: Icon, blacklist: set[int]) -> bool:
-    """Populate an icon containing a keyword with its image data.
-    :returns: True if the icon was successfully populated. False if keyword search failed.
-    """
-    icon_ids = _find_icon_ids(icon.keyword)
-    if not icon_ids:
-        logger.debug(f"Could not find any icons for keyword {icon.keyword}")
-        return False
-    for icon_id in icon_ids:
-        if icon_id in blacklist:
-            logger.debug(f"Skipping icon {icon_id}")
-            continue
-        logger.info("Fetching icon %s for %s", icon_id, icon.keyword)
-        # icon_url = _get_icon_url(icon_id)
-        contents = _get_icon(icon_id)
-        if contents is None:
-            blacklist.add(icon_id)
-            continue
-        icon.populate("", contents, icon_id)
-        logger.info(f"Using icon {icon_id} for {icon}")
-        # blacklist.add(icon_id)
-        return True
-    logger.warning(f"Used all of the icons for keyword {keyword}. Skipping")
-    return False
+from openai.types.responses import FunctionToolParam
 
 
 class IconSearchResult(BaseModel):
@@ -61,25 +22,24 @@ class IconSearchResult(BaseModel):
 
 
 # Definition of the "search" function as a tool, apporopriate for openAI use
-SEARCH_TOOL = {
-    "type": "function",
-    "name": "search_nounproject",
-    "description": "Search nounproject for icons that match the given query",
-    "parameters": {
+SEARCH_TOOL = FunctionToolParam(
+    name="search_nounproject",
+    type="function",
+    strict=True,
+    parameters={
         "type": "object",
         "properties": {
             "query": {
                 "type": "string",
                 "description": "A keyword or set of keywords to search for in nounproject's API ",
             },
-            "limit": {
-                "type": "integer",
-                "description": "The maximum number of results to return. Defaults to 20",
-            },
         },
-        "required": ["query"],
+        "required": [
+            "query",
+        ],
+        "additionalProperties": False,
     },
-}
+)
 
 
 def search(query: str, limit: int = 20) -> list[IconSearchResult]:
@@ -138,7 +98,7 @@ def _find_icon_ids(query: str) -> list[int]:
 
 
 @cache_af(version="2", verify_fn=lambda x: x is not None)
-def _get_icon(icon_id: int) -> bytes | None:
+def get_icon(icon_id: int) -> bytes | None:
     """Given an icon URL, get the icon itself"""
     cfg = Config.get()
     auth = OAuth1(cfg.nounproject_api_key, cfg.nounproject_secret)
