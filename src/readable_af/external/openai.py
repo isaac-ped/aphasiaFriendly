@@ -48,6 +48,8 @@ def completion(messages: list[Message], model: str = "gpt-4-1106-preview") -> st
     assert str_response is not None
     return str_response
 
+# The maximum number of times that openai can ask us to use a function on its behalf
+MAX_FUNCTION_CALLING_ITERATIONS=20
 
 def completion_structured(
     messages: list[Message], response_model: Type[T], model: str = "gpt-4o-2024-08-06"
@@ -85,29 +87,30 @@ def completion_structured(
     if response.error is not None:
         raise ValueError(f"OpenAI API returned an error: {response.error.message}")
 
-    i = 0
+    response_iterations = 0
     while response.output_parsed is None:
-        i += 1
-        logger.info(f"looping for {i}th time")
-        if i > 20:
-            raise ValueError("Failed to parse structured output from OpenAI API")
+        response_iterations += 1
+        logger.info(f"looping for {response_iterations}th time")
+        if response_iterations > MAX_FUNCTION_CALLING_ITERATIONS:
+            raise ValueError(f"No definitive response recieved in {MAX_FUNCTION_CALLING_ITERATIONS} iterations")
 
-        for item in response.output:  # for each of its responses
+        # If any output from the response requested a function call,
+        # call that function and make a subsequent request to openAI
+        # with the result of calling that function
+        for item in response.output:
             if (
                 item.type == "function_call"
-            ):  # if that response was requesting a call to one of the tools we gave it
+            ): 
                 if (
                     item.name == "search_nounproject"
-                ):  # and that tool was the tool that searches nounproject's API
-                    # run that function/tool
+                ): 
                     arguments = json.loads(item.arguments)
-                    rtn = nounproject.search(**arguments)  #
+                    rtn = nounproject.search(**arguments)
 
                     logger.info(
                         f"searched nounproject with arguments {arguments} with response {rtn}"
                     )
 
-                    # append function call results to the input the model is going to get (which includes all past interactions)
                     rtn_dict = [r.model_dump() for r in rtn]
                     message_dicts.append(
                         {
