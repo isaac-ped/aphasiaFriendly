@@ -57,11 +57,16 @@ def populate(icon: Icon, blacklist: set[int]) -> bool:
     """
     icon_ids = _find_icon_ids(icon.keyword)
     icon_candidates = []
+    candidate_max = float('inf')
+    candidate_count = 0
 
     if not icon_ids:
         logger.debug(f"Could not find any icons for keyword {icon.keyword}")
         return False
     for icon_id in icon_ids:
+        candidate_count += 1
+        if candidate_count >= candidate_max:
+            break
         if icon_id in blacklist:
             logger.debug(f"Skipping icon {icon_id}")
             continue
@@ -73,15 +78,13 @@ def populate(icon: Icon, blacklist: set[int]) -> bool:
             continue
         icon_candidates.append({
             "id": icon_id,
-            "name": _get_icon_name(icon_id)
+            "tags": _get_icon_tags(icon_id)
         })
-        selected_icon_id = generation.select_icon(icon.keyword, icon_candidates)
-        icon.populate("", contents, selected_icon_id)
-        logger.info(f"Using icon {selected_icon_id} for {icon}")
-        # blacklist.add(icon_id)
-        return True
-    logger.warning(f"Used all of the icons for keyword {icon.keyword}. Skipping")
-    return False
+    selected_icon_id = generation.select_icon(icon.keyword, icon_candidates)
+    icon.populate("", contents, selected_icon_id)
+    logger.info(f"Using icon {selected_icon_id} for {icon}")
+    # blacklist.add(icon_id)
+    return True
 
 
 @cache_af(version="1")
@@ -131,12 +134,48 @@ def _get_icon(icon_id: int) -> bytes | None:
     return b64decode(content["base64_encoded_file"])
 
 @cache_af(version="1", verify_fn=lambda x: x is not None)
-def _get_icon_name(icon_id: int) -> str | None:
-    """Given an icon ID, get the icon name"""
+def _get_icon_svg(icon_id: int) -> str | None:
+    """Given an icon URL, get the icon svg"""
     cfg = Config.get()
     auth = OAuth1(cfg.nounproject_api_key, cfg.nounproject_secret)
     endpoint = f"https://api.thenounproject.com/v2/icon/{icon_id}/download"
     response = requests.get(
-        endpoint, auth=auth, params={"color": "000000", "filetype": "png", "size": 100, "name": "true"}
+        endpoint, auth=auth, params={"color": "000000", "filetype": "svg"}
     )
-    return content["name"]
+    try:
+        content = json.loads(response.content.decode("utf-8"))
+    except Exception as e:
+        logger.error(f"Error decoding response: {e}\n{response.content}")
+        return None
+    logger.debug(f"Got svg response with keys {content.keys()} from {endpoint}")
+    dbg = copy.deepcopy(content)
+    dbg["base64_encoded_file"] = "..."
+    logger.debug(f"Response: {dbg}")
+    if "base64_encoded_file" not in content:
+        return None
+
+    return b64decode(content["base64_encoded_file"])
+
+@cache_af(version="1", verify_fn=lambda x: x is not None)
+def _get_icon_tags(icon_id: int) -> list[str] | None:
+    """Given an icon ID, get the icon SVG"""
+    cfg = Config.get()
+    auth = OAuth1(cfg.nounproject_api_key, cfg.nounproject_secret)
+    endpoint = f"https://api.thenounproject.com/v2/icon/{icon_id}"
+    response = requests.get(endpoint, auth=auth)
+    content = response.json()
+    logger.info(f"{content["icon"]["tags"]}")
+    return content["icon"]["tags"]
+
+
+
+@cache_af(version="1", verify_fn=lambda x: x is not None)
+def _get_icon_name(icon_id: int) -> str | None:
+    """Given an icon ID, get the icon name"""
+    cfg = Config.get()
+    auth = OAuth1(cfg.nounproject_api_key, cfg.nounproject_secret)
+    endpoint = f"https://api.thenounproject.com/v2/icon/{icon_id}"
+    response = requests.get(endpoint, auth=auth)
+    content = response.json()
+    logger.info(f"{content["icon"]["name"]}")
+    return content["icon"]["name"]

@@ -253,7 +253,7 @@ You must select an icon.
         # This guarantees valid JSON matching our schema
         response = oa.completion_structured(messages, response_model=IconSelection, model=MODEL)
         logger.info(
-            f"Selected best icon: {response.model_dump_json(indent=2)}"
+            f"Selected best icon for keyword {keyword}: {response.model_dump_json(indent=2)}"
         )
     except Exception as e:
         logger.exception("Failed to generate structured output from ChatGPT")
