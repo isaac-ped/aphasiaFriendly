@@ -80,17 +80,81 @@ def summary_prompt(abstract: str) -> list[oa.Message]:
             "Use only those simpler terms moving forward. "
             "Be specific about brain locations, "
             "for example, do not say 'brain spots', but say 'temporal lobe' or 'frontal lobe'. "
-            "The sentences that you produce should have a flesch-kincaid score of less than 75. "
+            "The sentences that you produce should have a flesch-kincaid score of more than 70. "
             "The two or three most important words or short phrases in each bullet MUST be put in bold with the html <b></b> tag. "
             "A reader should be able to read only those words in bold and still know get the gist of what the article was saying. "
             "For each bolded word, choose 1 icon. "
             "You will find these icons by searching NounProject, and will indicate the IDs of these icons in NounProject. "
-            "Each icon should be UNIQUE. Do NOT reuse icons across different lines."
-            "Use the tools provided to you to search for icons. ONLY use IDs that have been provided to you through these tools. "
+            "Use the tools provided to you to search for icons. ONLY USE IDs THAT HAVE BEEN PROVIDED TO YOU THROUGH THESE TOOLS. "
             "Use the additional metadata provided by the tools to ensure that the icons you are choosing are appropriate. "
             "If you do not think the icons are appropriate, you can should out to more tool calls multiple times. "
-            "I expect that you will perform approximately 10-20 searches for each summary, but it may be as many as 30. ",
+            "I expect that you will perform approximately 10-20 searches for each summary, but it may be as many as 30. "
+            "\n\nThe following is an example of an abstract you may be provided with:\n"
+            "Individuals with post-stroke aphasia tend to recover their language to some extent; however, it remains challenging to reliably predict the nature and extent of recovery that will occur in the long term. "
+            "The aim of this study was to quantitatively predict language outcomes in the first year of recovery from aphasia across multiple domains of language and at multiple timepoints post-stroke. "
+            "We recruited 217 patients with aphasia following acute left hemisphere ischaemic or haemorrhagic stroke and evaluated their speech and language function using the Quick Aphasia Battery acutely and then acquired longitudinal follow-up data at up to three timepoints post-stroke: 1 month (n = 102), 3 months (n = 98) and 1 year (n = 74). "
+            "We used support vector regression to predict language outcomes at each timepoint using acute clinical imaging data, demographic variables and initial aphasia severity as input. "
+            "We found that ∼60% of the variance in long-term (1 year) aphasia severity could be predicted using these models, with detailed information about lesion location importantly contributing to these predictions. "
+            "Predictions at the 1- and 3-month timepoints were somewhat less accurate based on lesion location alone, but reached comparable accuracy to predictions at the 1-year timepoint when initial aphasia severity was included in the models. "
+            "Specific subdomains of language besides overall severity were predicted with varying but often similar degrees of accuracy. "
+            "Our findings demonstrate the feasibility of using support vector regression models with leave-one-out cross-validation to make personalized predictions about long-term recovery from aphasia and provide a valuable neuroanatomical baseline upon which to build future models incorporating information beyond neuroanatomical and demographic predictors."
+            "\n\n"
+            "For this abstract you might provide the following summary: "
+            "- <b>Aphasia</b> is a <b>problem</b> with <b>language</b> that can happen after <b>stroke</b>"
+            "- Language usually <b>gets better</b>, but we can’t always <b>predict how much</b>"
+            "- We looked at a <b>big group</b> of <b>people</b> with <b>aphasia</b>, their <b>brains</b>, and their <b>language</b>"
+            "- We used <b>math</b> to try and <b>predict language</b> across the <b>first year</b> after stroke"
+            "- This math did a <b>pretty good job</b> making predictions (about <b>60%</b> correct)!"
+            "- We <b>hope</b> that more math like this will <b>help</b> doctors, therapists, researchers, and people with aphasia have <b>clearer expectations</b> about <b>aphasia recovery</b>"
+            "\n\n"
+            "Again: keep your summaries SIMPLE and ACCURATE, with the most RELEVANT ICONS as chosen by the keywords that the tooling provides."
+            ,
             role="system",
+#         oa.Message(
+#             content="Individuals with post-stroke aphasia tend to recover their language to some extent; however, it remains challenging to reliably predict the nature and extent of recovery that will occur in the long term. "
+#             "The aim of this study was to quantitatively predict language outcomes in the first year of recovery from aphasia across multiple domains of language and at multiple timepoints post-stroke. "
+#             "We recruited 217 patients with aphasia following acute left hemisphere ischaemic or haemorrhagic stroke and evaluated their speech and language function using the Quick Aphasia Battery acutely and then acquired longitudinal follow-up data at up to three timepoints post-stroke: 1 month (n = 102), 3 months (n = 98) and 1 year (n = 74). "
+#             "We used support vector regression to predict language outcomes at each timepoint using acute clinical imaging data, demographic variables and initial aphasia severity as input. "
+#             "We found that ∼60% of the variance in long-term (1 year) aphasia severity could be predicted using these models, with detailed information about lesion location importantly contributing to these predictions. "
+#             "Predictions at the 1- and 3-month timepoints were somewhat less accurate based on lesion location alone, but reached comparable accuracy to predictions at the 1-year timepoint when initial aphasia severity was included in the models. "
+#             "Specific subdomains of language besides overall severity were predicted with varying but often similar degrees of accuracy. "
+#             "Our findings demonstrate the feasibility of using support vector regression models with leave-one-out cross-validation to make personalized predictions about long-term recovery from aphasia and provide a valuable neuroanatomical baseline upon which to build future models incorporating information beyond neuroanatomical and demographic predictors.",
+#             role="user",
+#         ),
+#         oa.Message(
+#             content="""{
+#     "summary": [
+#         {
+#             "text": "<b>Aphasia</b> is a <b>problem</b> with <b>language</b> that can happen after <b>stroke</b>",
+#             "icon_keywords": ["miscommunication","stroke"]
+#         },
+#         {
+#             "text": "Language usually <b>gets better</b>, but we can’t always <b>predict how much</b>",
+#             "icon_keywords": ["prediction"]
+#         },
+#         {
+#             "text": "We looked at a <b>big group</b> of <b>people</b> with <b>aphasia</b>, their <b>brains</b>, and their <b>language</b>",
+#             "icon_keywords": ["brain","crowd","person talking"]
+#         },
+#         {
+#             "text": "We used <b>math</b> to try and <b>predict language</b> across the <b>first year</b> after stroke",
+#             "icon_keywords": ["regression","predict"]
+#         },
+#         {
+#             "text": "This math did a <b>pretty good job</b> making predictions (about <b>60%</b> correct)!",
+#             "icon_keywords": ["predict","test","check mark"]
+#         },
+#         {
+#             "text": "We <b>hope</b> that more math like this will <b>help</b> doctors, therapists, researchers, and people with aphasia have <b>clearer expectations</b> about <b>aphasia recovery</b>",
+#             "icon_keywords": []
+#         }
+#     ],
+#     "title": "Using math and the brain to predict language recovery after stroke",
+#     "rating":10
+# }""",
+
+
+
         ),
         oa.Message(content=abstract),
     ]
