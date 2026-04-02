@@ -3,7 +3,7 @@ _list:
 
 # Install requirements
 install args="":
-    poetry install --sync {{args}}
+    uv sync {{args}}
 
 # Install and start local server
 dev:
@@ -22,7 +22,12 @@ gen-dotenv:
     curl https://article-friend-dev.fly.dev > /dev/null
     uv run python utils/generate_dotenv.py
 
+# Run linting and typechecking
 lint:
     uv run ruff format
     uv run ruff check
     uv run pyright
+
+# Run the CLI version of article-friend
+run args="":
+    uv run af {{args}}
