@@ -1,5 +1,6 @@
 from typing import Protocol
 
+from . import comparison
 from ..model.request import Ctx
 
 
@@ -9,7 +10,7 @@ class Generator(Protocol):
 
 
 def get_generator(format: str) -> Generator:
-    from . import pptx, yaml, html, gdocs
+    from . import pptx, yaml, html, gdocs, comparison
 
     if format == "pptx":
         return pptx.PPTXGenerator()
@@ -19,4 +20,7 @@ def get_generator(format: str) -> Generator:
         return html.HtmlGenerator()
     if format == "gdoc":
         return gdocs.GoogleDocGenerator()
+    if format == "comparison":
+        return comparison.ComparisonGenerator()
+
     raise ValueError(f"Unknown format {format}")
