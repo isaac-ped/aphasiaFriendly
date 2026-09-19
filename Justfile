@@ -22,8 +22,8 @@ gen-dotenv:
     curl https://article-friend-dev.fly.dev > /dev/null
     uv run python utils/generate_dotenv.py
 
-evaluate ORIGINAL SUMMARY:
-    uv run python -m readable_af.evaluation.evaluate  {{ORIGINAL}} {{SUMMARY}}
+evaluate ORIGINAL SUMMARY PROVIDER="openai":
+    uv run python -m readable_af.evaluation.evaluate  {{ORIGINAL}} {{SUMMARY}} --provider={{PROVIDER}}
 
 lint:
     uv run ruff format
