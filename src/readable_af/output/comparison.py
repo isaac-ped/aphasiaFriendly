@@ -16,10 +16,10 @@ class ComparisonGenerator:
             json.dump(
                 {
                     "title": ctx.input.title,
-                    "abstract": ctx.input.abstract
+                    "abstract": ctx.input.abstract,
                 },
                 f,
-                indent=2
+                indent=2,
             )
 
         if summary.metadata:
@@ -31,7 +31,7 @@ class ComparisonGenerator:
             json.dump(
                 {
                     "title": simplified_title,
-                    "abstract": "\n".join(bullet.text for bullet in summary.bullets) 
+                    "abstract": "\n".join(bullet.text for bullet in summary.bullets),
                 },
                 f,
                 indent=2,

@@ -1,6 +1,5 @@
 from typing import Protocol
 
-from . import comparison
 from ..model.request import Ctx
 
 
