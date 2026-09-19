@@ -22,6 +22,9 @@ gen-dotenv:
     curl https://article-friend-dev.fly.dev > /dev/null
     uv run python utils/generate_dotenv.py
 
+evaluate ORIGINAL SUMMARY:
+    uv run python -m readable_af.evaluation.evaluate  {{ORIGINAL}} {{SUMMARY}}
+
 lint:
     uv run ruff format
     uv run ruff check
