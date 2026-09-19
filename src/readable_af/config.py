@@ -106,6 +106,9 @@ class Config:
     openai_api_key: str = dataclasses.field(
         default_factory=RequiredEnvVar("OPENAI_API_KEY").get
     )
+    anthropic_api_key: str | None = dataclasses.field(
+        default_factory=EnvVar("ANTHROPIC_API_KEY").get
+    )
     nounproject_api_key: str = dataclasses.field(
         default_factory=RequiredEnvVar("NOUNPROJECT_API_KEY").get
     )
