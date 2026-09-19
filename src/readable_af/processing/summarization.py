@@ -30,22 +30,19 @@ def summarize(ctx: Ctx) -> Summary:
         else:
             with open(input.file) as f:
                 contents = f.readlines()
-            title = contents[0].strip()
-            authors = contents[1].strip()
-            abstract = "\n".join(contents[2:])
-            metadata = Metadata(
-                title=title, authors=authors.split(","), date="", simplified_title=""
-            )
-    else:
-        abstract = input.abstract
-        assert input.title is not None
-        assert input.authors is not None
-        metadata = Metadata(
-            title=input.title,
-            authors=input.authors.split(","),
-            date="",
-            simplified_title="",
-        )
+            input.title = contents[0].strip()
+            input.authors = contents[1].strip()
+            input.abstract = "\n".join(contents[2:])
+
+    abstract = input.abstract
+    assert input.title is not None
+    assert input.authors is not None
+    metadata = Metadata(
+        title=input.title,
+        authors=input.authors.split(","),
+        date="",
+        simplified_title="",
+    )
 
     summary = Summary(metadata=metadata, bullets=[])
     generation.generate_bullets(summary, abstract)
