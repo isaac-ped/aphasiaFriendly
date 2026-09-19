@@ -18,7 +18,7 @@ from langchain_anthropic import ChatAnthropic
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
-from pydantic import BaseModel, Field, SecretStr, ValidationError, field_validator
+from pydantic import BaseModel, Field, SecretStr, ValidationError
 from readable_af.config import Config
 
 Provider = Literal["openai", "anthropic"]
@@ -43,6 +43,7 @@ SYSTEM_PROMPT = (
 class ArticleText(BaseModel):
     title: str
     abstract: str
+
 
 class SummaryRating(BaseModel):
     accuracy: int = Field(
@@ -83,7 +84,9 @@ def create_model(provider: Provider) -> BaseChatModel:
     config = Config.get()
     if provider == "anthropic":
         if not config.anthropic_api_key:
-            raise RuntimeError("ANTHROPIC_API_KEY is required for the Anthropic provider.")
+            raise RuntimeError(
+                "ANTHROPIC_API_KEY is required for the Anthropic provider."
+            )
         return ChatAnthropic(
             model_name=ANTHROPIC_MODEL,
             api_key=SecretStr(config.anthropic_api_key),
@@ -154,7 +157,9 @@ def main(argv: list[str] | None = None) -> int:
         help="Generated summary JSON containing title and abstract",
     )
     parser.add_argument(
-        "--json", action="store_true", help="Print the rating as JSON instead of a report"
+        "--json",
+        action="store_true",
+        help="Print the rating as JSON instead of a report",
     )
     parser.add_argument(
         "--provider",

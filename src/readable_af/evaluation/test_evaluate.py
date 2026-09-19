@@ -12,7 +12,9 @@ from pydantic import SecretStr, ValidationError
 from evaluation import evaluate as evaluator
 
 
-def write_article(path: Path, *, title: str = "Title", abstract: str = "Abstract") -> None:
+def write_article(
+    path: Path, *, title: str = "Title", abstract: str = "Abstract"
+) -> None:
     path.write_text(
         json.dumps({"title": title, "abstract": abstract}),
         encoding="utf-8",
