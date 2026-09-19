@@ -4,9 +4,10 @@ Both inputs are JSON files with ``title`` and ``abstract`` fields. The source
 file is typically ``summary.orig.json`` and the generated summary is typically
 ``summary.json``.
 
+Runnable as an individual module as well as as an API
+
 Usage:
-    uv run python evaluation/evaluate.py SOURCE.json SUMMARY.json
-    uv run python evaluation/evaluate.py SOURCE.json SUMMARY.json --json
+    uv run python -m readable_af.evaluation.evaluate SOURCE.json SUMMARY.json [ --json ]
 """
 
 import argparse
