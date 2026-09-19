@@ -25,7 +25,7 @@ class Message(BaseModel):
 
 
 @cache_af()
-def _completion_api(messages: list[dict], model="gpt-4-1106-preview") -> ChatCompletion:
+def _completion_api(messages: list[dict], model: str) -> ChatCompletion:
     """Send a completion request to the OpenAI API."""
     print(len(json.dumps(messages)))
     if len(json.dumps(messages)) > 16384:
@@ -40,7 +40,7 @@ def _completion_api(messages: list[dict], model="gpt-4-1106-preview") -> ChatCom
     return client().chat.completions.create(model=model, messages=messages)  # type: ignore
 
 
-def completion(messages: list[Message], model: str = "gpt-4-1106-preview") -> str:
+def completion(messages: list[Message], model: str) -> str:
     """Send a completion request to the OpenAI API and return the text of the response"""
     message_dicts = [message.model_dump() for message in messages]
     response = _completion_api(message_dicts, model=model)
@@ -52,7 +52,7 @@ def completion(messages: list[Message], model: str = "gpt-4-1106-preview") -> st
 MAX_FUNCTION_CALLING_ITERATIONS=20
 
 def completion_structured(
-    messages: list[Message], response_model: Type[T], model: str = "gpt-4o-2024-08-06"
+    messages: list[Message], response_model: Type[T], model: str
 ) -> T:
     """Send a completion request with structured output.
 
