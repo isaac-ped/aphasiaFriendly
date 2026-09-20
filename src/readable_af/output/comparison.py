@@ -4,8 +4,15 @@ from ..model.request import Ctx
 from readable_af.model.summary import Summary
 
 
+class ComparisonIcon(BaseModel):
+    keywords: list[str] = Field(description="Keywords describing the icon in question")
+
+
 class ComparisonBullet(BaseModel):
     text: str = Field(description="The text accompanying one bullet point of a summary")
+    icons: list[ComparisonIcon] = Field(
+        description="Icons that accompany this bullet point"
+    )
 
 
 class ComparisonModel(BaseModel):
@@ -38,7 +45,18 @@ class ComparisonGenerator:
             original_title=ctx.input.title,
             original_abstract=ctx.input.abstract,
             simplified_title=summary.metadata.simplified_title,
-            summary=[ComparisonBullet(text=bullet.text) for bullet in summary.bullets],
+            summary=[
+                ComparisonBullet(
+                    text=bullet.text,
+                    icons=[
+                        ComparisonIcon(
+                            keywords=icon.tags,
+                        )
+                        for icon in bullet.icons
+                    ],
+                )
+                for bullet in summary.bullets
+            ],
         )
 
         with out.with_suffix(".json").open("w") as f:

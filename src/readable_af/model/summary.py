@@ -18,6 +18,10 @@ class Icon(BaseModel):
     )
     _icon: bytes | None = None
     id: int = Field(description="The id for this icon on NounProject")
+    tags: list[str] = Field(
+        description="The tags that NounProject returns for this icon. Should be copied veridically from what nounproject returns.",
+        default_factory=list,
+    )
 
     def calculate_checksum(self) -> int:
         return hash((self.keyword, self.id))  # _id))
