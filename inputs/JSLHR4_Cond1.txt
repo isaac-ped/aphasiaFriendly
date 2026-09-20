@@ -1,0 +1,8 @@
+The Role of Processing Speed and Cognitive Control on Word Retrieval in Aging and Aphasia
+Yasmeen Faroqi-Shah and Megan Gehman
+Purpose: When speakers retrieve words, they do so extremely quickly and accurately—both speed and accuracy of word retrieval are compromised in persons with aphasia (PWA). This study examined the contribution of two domain-general mechanisms: processing speed and cognitive control on word retrieval in PWA.
+Method: Three groups of participants, neurologically healthy young and older adults and PWA (n = 15 in each group), performed processing speed, cognitive control, lexical decision, and word retrieval tasks on a computer. The relationship between word retrieval speed and other tasks was examined for each group.
+Results: Both aging and aphasia resulted in slower processing speed but did not affect cognitive control. Word retrieval response time delays in PWA were eliminated when processing
+speed was accounted for. Word retrieval speed was predicted by individual differences in cognitive control in young and older adults and additionally by processing speed in older adults.
+In PWA, word retrieval speed was predicted by severity of language deficit and cognitive control.
+Conclusions: This study shows that processing speed is compromised in aphasia and could account for their slowed response times. Individual differences in cognitive control predicted word retrieval speed in healthy adults and PWA. These findings highlight the need to include nonlinguistic cognitive mechanisms in future models of word retrieval in healthy adults and word retrieval deficits in aphasia.
