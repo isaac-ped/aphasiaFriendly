@@ -69,7 +69,7 @@ class SummaryRating(BaseModel):
         le=10,
         description="How natual does the language sound? "
         "If this does not sound like something a native english speaker would say, this score should be greatly reduced. "
-        "If you can tell that this has been *attempted* to be simplified, it should not score above a 7. "
+        "If the grammatical structures are uncommon among native English speakers, e.g. it says 'good talking' instead of 'communicating well', it should not score above a 5."
         "It should score below a 5 if even a single word is used in a way that a native english speaker would think was unusual.",
     )
     appropriateness_of_icons: int = Field(
