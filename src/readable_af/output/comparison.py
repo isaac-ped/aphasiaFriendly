@@ -33,13 +33,11 @@ class ComparisonGenerator:
         assert ctx.input.title is not None
         assert ctx.input.abstract is not None
         assert summary.metadata is not None
-        
-        simplified_title = summary.metadata.simplified_title
 
         comparison = ComparisonModel(
             original_title=ctx.input.title,
             original_abstract=ctx.input.abstract,
-            simplified_title=simplified_title,
+            simplified_title=summary.metadata.simplified_title,
             summary=[ComparisonBullet(text=bullet.text) for bullet in summary.bullets],
         )
 
