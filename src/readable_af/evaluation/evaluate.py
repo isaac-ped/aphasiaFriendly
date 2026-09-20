@@ -76,8 +76,7 @@ class SummaryRating(BaseModel):
         ge=1,
         le=10,
         description="From the keywords that are provided, how appropriate are the icons that accompany each bullet point? "
-        "If an icons is unnecessarily, that should reduce this score by a little. "
-        "If you believe an icon might be _more_ confusing, that should reduce this score by 3-4 points for EACH confusing icon.",
+        "If you believe an icon might be _more_ confusing than having no icon, that should reduce this score by 3-4 points for EACH confusing icon.",
     )
 
 
