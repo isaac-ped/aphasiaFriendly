@@ -32,11 +32,9 @@ class ComparisonGenerator:
 
         assert ctx.input.title is not None
         assert ctx.input.abstract is not None
-
-        if summary.metadata:
-            simplified_title = summary.metadata.simplified_title
-        else:
-            simplified_title = ctx.input.title
+        assert summary.metadata is not None
+        
+        simplified_title = summary.metadata.simplified_title
 
         comparison = ComparisonModel(
             original_title=ctx.input.title,
