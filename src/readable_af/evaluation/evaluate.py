@@ -138,10 +138,10 @@ def main(argv: list[str] | None = None) -> int:
         )
     )
     parser.add_argument(
-        "source",
+        "input",
         type=Path,
-        metavar="SOURCE.json",
-        help="Source article JSON containing title and abstract",
+        metavar="COMPARISON.json",
+        help="File containing information about orignal and summarized article. Output by the 'comparison' generator.",
     )
     parser.add_argument(
         "--json",
@@ -156,11 +156,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    if not args.source.is_file():
-        parser.error(f"Source JSON file not found: {args.source}")
+    if not args.input.is_file():
+        parser.error(f"Comparison JSON file not found: {args.input}")
 
     try:
-        input = load_summary_comparison(args.source)
+        input = load_summary_comparison(args.input)
     except (OSError, ValueError) as error:
         parser.error(str(error))
 
