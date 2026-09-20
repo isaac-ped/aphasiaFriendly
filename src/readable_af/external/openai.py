@@ -48,10 +48,8 @@ def completion(messages: list[Message], model: str) -> str:
     assert str_response is not None
     return str_response
 
-
 # The maximum number of times that openai can ask us to use a function on its behalf
-MAX_FUNCTION_CALLING_ITERATIONS = 20
-
+MAX_FUNCTION_CALLING_ITERATIONS=20
 
 def completion_structured(
     messages: list[Message], response_model: Type[T], model: str
@@ -94,16 +92,18 @@ def completion_structured(
         response_iterations += 1
         logger.info(f"looping for {response_iterations}th time")
         if response_iterations > MAX_FUNCTION_CALLING_ITERATIONS:
-            raise ValueError(
-                f"No definitive response recieved in {MAX_FUNCTION_CALLING_ITERATIONS} iterations"
-            )
+            raise ValueError(f"No definitive response recieved in {MAX_FUNCTION_CALLING_ITERATIONS} iterations")
 
         # If any output from the response requested a function call,
         # call that function and make a subsequent request to openAI
         # with the result of calling that function
         for item in response.output:
-            if item.type == "function_call":
-                if item.name == "search_nounproject":
+            if (
+                item.type == "function_call"
+            ): 
+                if (
+                    item.name == "search_nounproject"
+                ): 
                     arguments = json.loads(item.arguments)
                     rtn = nounproject.search(**arguments)
 
