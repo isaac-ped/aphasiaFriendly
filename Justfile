@@ -26,6 +26,6 @@ evaluate COMPARISON PROVIDER="openai":
     uv run python -m readable_af.evaluation.evaluate  {{COMPARISON}}  --provider={{PROVIDER}}
 
 lint:
-    uv run ruff format
-    uv run ruff check
-    uv run pyright
+    uv run ruff format src/
+    uv run ruff check src/
+    uv run pyright src/
