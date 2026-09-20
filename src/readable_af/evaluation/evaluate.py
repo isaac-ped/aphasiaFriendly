@@ -54,7 +54,7 @@ class SummaryRating(BaseModel):
         ge=1,
         le=10,
         description="Is the word choice used simple enough for the reader? "
-        "This text should be readable to an elemetary school audience. "
+        "This text should be readable to an elementary school audience. "
         "Complicated words should reduce this score, even if they are more accurate.",
     )
     clarity: int = Field(
