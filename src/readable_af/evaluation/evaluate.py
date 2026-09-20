@@ -61,7 +61,7 @@ class SummaryRating(BaseModel):
         ge=1,
         le=10,
         description="Would the meaning of each sentence be clear to people of all "
-        "reading levels? ANY sentences that MIGHT not make sense to a reader who is "
+        "reading levels? ANY words or sentences that MIGHT not make sense to a reader who is "
         "not informed on the topic should greatly reduce this score. ",
     )
     naturalness: int = Field(
