@@ -7,7 +7,7 @@ file is typically ``summary.orig.json`` and the generated summary is typically
 Runnable as an individual module as well as as an API
 
 Usage:
-    uv run python -m readable_af.evaluation.evaluate SOURCE.json SUMMARY.json [ --json ]
+    uv run python -m readable_af.evaluation.evaluate COMPARISON.json [ --json ]
 """
 
 import argparse
@@ -20,7 +20,8 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field, SecretStr, ValidationError
-from readable_af.config import Config
+from ..config import Config
+from ..output.comparison import ComparisonModel
 
 Provider = Literal["openai", "anthropic"]
 
@@ -39,11 +40,6 @@ SYSTEM_PROMPT = (
     "sentence that might not make sense to a reader unfamiliar with the topic "
     "should greatly reduce this score."
 )
-
-
-class ArticleText(BaseModel):
-    title: str
-    abstract: str
 
 
 class SummaryRating(BaseModel):
@@ -73,10 +69,12 @@ class SummaryRating(BaseModel):
     )
 
 
-def load_article(file_path: Path) -> ArticleText:
-    """Load and validate an article or summary JSON file."""
+def load_summary_comparison(file_path: Path) -> ComparisonModel:
+    """Load a summary as saved out by the comparison output generator"""
     try:
-        return ArticleText.model_validate_json(file_path.read_text(encoding="utf-8"))
+        return ComparisonModel.model_validate_json(
+            file_path.read_text(encoding="utf-8")
+        )
     except ValidationError as error:
         raise ValueError(f"Invalid article JSON in {file_path}: {error}") from error
 
@@ -101,17 +99,11 @@ def create_model(provider: Provider) -> BaseChatModel:
 
 
 def evaluate(
-    source: ArticleText,
-    summary: ArticleText,
+    inputs: ComparisonModel,
     provider: Provider = "openai",
 ) -> SummaryRating:
     """Rate a generated title and abstract against the source article metadata."""
-    user_message = (
-        f"SOURCE TITLE:\n{source.title}\n\n"
-        f"SOURCE ABSTRACT:\n{source.abstract}\n\n"
-        f"GENERATED TITLE:\n{summary.title}\n\n"
-        f"GENERATED ABSTRACT:\n{summary.abstract}"
-    )
+    user_message = inputs.model_dump_json()
 
     model = create_model(provider)
     structured_model = model.with_structured_output(
@@ -146,16 +138,10 @@ def main(argv: list[str] | None = None) -> int:
         )
     )
     parser.add_argument(
-        "source",
+        "input",
         type=Path,
-        metavar="SOURCE.json",
-        help="Source article JSON containing title and abstract",
-    )
-    parser.add_argument(
-        "summary",
-        type=Path,
-        metavar="SUMMARY.json",
-        help="Generated summary JSON containing title and abstract",
+        metavar="COMPARISON.json",
+        help="File containing information about orignal and summarized article. Output by the 'comparison' generator.",
     )
     parser.add_argument(
         "--json",
@@ -170,18 +156,15 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    if not args.source.is_file():
-        parser.error(f"Source JSON file not found: {args.source}")
-    if not args.summary.is_file():
-        parser.error(f"Summary JSON file not found: {args.summary}")
+    if not args.input.is_file():
+        parser.error(f"Comparison JSON file not found: {args.input}")
 
     try:
-        source = load_article(args.source)
-        summary = load_article(args.summary)
+        input = load_summary_comparison(args.input)
     except (OSError, ValueError) as error:
         parser.error(str(error))
 
-    rating = evaluate(source, summary, provider=args.provider)
+    rating = evaluate(input, provider=args.provider)
     if args.json:
         print(rating.model_dump_json(indent=2))
     else:

@@ -1,7 +1,26 @@
-import json
+from pydantic import BaseModel, Field
 from ..model.request import Ctx
 
 from readable_af.model.summary import Summary
+
+
+class ComparisonBullet(BaseModel):
+    text: str = Field(description="The text accompanying one bullet point of a summary")
+
+
+class ComparisonModel(BaseModel):
+    original_title: str = Field(
+        description="The original title of the paper to be summarized"
+    )
+    original_abstract: str = Field(
+        description="The original abstract of the paper to be summarized"
+    )
+    simplified_title: str = Field(
+        description="A simplified version of the paper's title"
+    )
+    summary: list[ComparisonBullet] = Field(
+        description="A list of bullet points summarizing the article's abstract"
+    )
 
 
 class ComparisonGenerator:
@@ -11,28 +30,16 @@ class ComparisonGenerator:
         assert out is not None
         out.parent.mkdir(exist_ok=True, parents=True)
 
-        orig_out = out.with_suffix(".orig.json")
-        with orig_out.open("w") as f:
-            json.dump(
-                {
-                    "title": ctx.input.title,
-                    "abstract": ctx.input.abstract,
-                },
-                f,
-                indent=2,
-            )
+        assert ctx.input.title is not None
+        assert ctx.input.abstract is not None
+        assert summary.metadata is not None
 
-        if summary.metadata:
-            simplified_title = summary.metadata.simplified_title
-        else:
-            simplified_title = ctx.input.title
+        comparison = ComparisonModel(
+            original_title=ctx.input.title,
+            original_abstract=ctx.input.abstract,
+            simplified_title=summary.metadata.simplified_title,
+            summary=[ComparisonBullet(text=bullet.text) for bullet in summary.bullets],
+        )
 
         with out.with_suffix(".json").open("w") as f:
-            json.dump(
-                {
-                    "title": simplified_title,
-                    "abstract": "\n".join(bullet.text for bullet in summary.bullets),
-                },
-                f,
-                indent=2,
-            )
+            f.write(comparison.model_dump_json(indent=2))
