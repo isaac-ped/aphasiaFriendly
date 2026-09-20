@@ -16,10 +16,9 @@ def summarize(ctx: Ctx):
     assert input.abstract is not None or input.file is not None
     summary = summarization.summarize(ctx)
     if ctx.output_file is None:
+        out_dir = ctx.output_dir or DEFAULT_OUT_DIR
         assert ctx.input.file is not None
-        ctx.output_file = (
-            DEFAULT_OUT_DIR / ctx.input.file.stem / f"summary.{ctx.output_format}"
-        )
+        ctx.output_file = out_dir / (ctx.input.file.stem + f".{ctx.output_format}")
     generator = get_generator(ctx.output_format)
     generator.generate(summary, ctx)
 
