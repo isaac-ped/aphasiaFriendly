@@ -53,8 +53,6 @@ class SummaryRating(BaseModel):
         "An issue of glossing over details does not count as an accuracy problem. " 
         "The only thing that counts against accuracy is the inclusion of a false statement in the summary.",
     )
-    accuracy_reason: str = Field(
-        description="An example of an inaccurate statement from the summary that caused the accuracy rating to be lower."
     )
     coverage: int = Field(
         ge=1,
