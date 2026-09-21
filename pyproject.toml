@@ -7,7 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "click>=8.3.0",
     "flask>=3.1.2",
-"flask-limiter>=3.13",
+    "flask-limiter>=3.13",
     "gunicorn>=23.0.0",
     "langchain-anthropic>=0.3.20,<1",
     "langchain-openai>=0.3.33,<1",
@@ -21,15 +21,19 @@ dependencies = [
     "google-api-python-client>=2.182.0",
     "google-auth-httplib2>=0.2.0",
     "google-auth-oauthlib>=1.2.2",
+    "langchain-google-genai>=2.1.12",
 ]
 
 
 [dependency-groups]
 dev = [
     "jupyterlab>=4.6.3",
+    "numpy>=2.5.3",
+    "pandas>=3.0.6",
     "pyright>=1.1.405",
     "pytest>=8.4.2",
     "ruff>=0.13.1",
+    "seaborn>=0.13.2",
 ]
 
 [project.scripts]
