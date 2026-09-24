@@ -110,9 +110,13 @@ def create_model(provider: Provider, model_name: str | None = None) -> BaseChatM
             )
         return ChatAnthropic(
             model_name=model_name or ANTHROPIC_MODEL,
+            
             api_key=SecretStr(config.anthropic_api_key),
             timeout=None,
             stop=None,
+            thinking={
+                "type": "adaptive"
+            }
         )
     elif provider == "gemini":
         if not config.gemini_api_key:
