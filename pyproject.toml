@@ -45,5 +45,6 @@ package = true
 
 [tool.ruff]
 exclude = [
-    ".trash"
+    ".trash",
+    "analysis"
 ]
