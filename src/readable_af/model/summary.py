@@ -98,7 +98,7 @@ class Bullet(BaseModel):
     )
     icons: list[Icon] = Field(
         default_factory=list,
-        description="0-3 icons that should accompany this bullet point.",
+        description="0-3 icon keywords for this bullet point, ordered from most to least important. Each Icon should have only the keyword field populated.",
     )
 
     def calculate_checksum(self) -> int:
@@ -118,7 +118,7 @@ class Bullet(BaseModel):
 
 
 class Summary(BaseModel):
-    metadata: Metadata
+    metadata: Metadata | None = None
     rating: str = "N/A"
     bullets: list[Bullet] = Field(default_factory=list)
 
