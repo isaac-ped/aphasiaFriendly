@@ -69,12 +69,6 @@ def generate_abstract(messy_abstract: str) -> str:
     logger.info(f"Generated the following asbtract: {abstract}")
     return abstract.strip()
 
-_SAMPLE_PATH = Path(__file__).parent.parent.parent.parent / "ground_truth/dmPFC_example.json"
-
-@cache
-def load_sample() -> str:
-    with _SAMPLE_PATH.open() as f:
-        return f.read()
 
 def summary_prompt(abstract: str) -> list[oa.Message]:
     sample_input = load_sample()
