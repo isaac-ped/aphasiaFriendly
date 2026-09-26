@@ -51,7 +51,7 @@ class SummaryRating(BaseModel):
         le=10,
         description="Does the summary introduce hallucinations or contradict the original? "
         "Are there any statements that misrepresent the original abstract? "
-        "An issue of glossing over details does not count as an accuracy problem. " 
+        "An issue of glossing over details does not count as an accuracy problem. "
         "The only thing that counts against accuracy is the inclusion of a false statement in the summary.",
     )
     coverage: int = Field(
@@ -110,19 +110,14 @@ def create_model(provider: Provider, model_name: str | None = None) -> BaseChatM
             )
         return ChatAnthropic(
             model_name=model_name or ANTHROPIC_MODEL,
-            
             api_key=SecretStr(config.anthropic_api_key),
             timeout=None,
             stop=None,
-            thinking={
-                "type": "adaptive"
-            }
+            thinking={"type": "adaptive"},
         )
     elif provider == "gemini":
         if not config.gemini_api_key:
-            raise RuntimeError(
-                "GEMINI_API_KEY is required for the gemini provider."
-            )
+            raise RuntimeError("GEMINI_API_KEY is required for the gemini provider.")
         return ChatGoogleGenerativeAI(
             model=model_name or "gemini-3.6-flash",
             google_api_key=SecretStr(config.gemini_api_key),
@@ -153,7 +148,7 @@ def evaluate(
     result = None
     for i in range(retries):
         if i > 0:
-            print(f"Model invocation failed. Performing attempt number {i+1}")
+            print(f"Model invocation failed. Performing attempt number {i + 1}")
         result = structured_model.invoke(
             [SystemMessage(content=SYSTEM_PROMPT), HumanMessage(content=user_message)]
         )
@@ -161,7 +156,9 @@ def evaluate(
             break
     if not isinstance(result, SummaryRating):
         print(result)
-        raise RuntimeError(f"Model did not return a valid summary rating. Returned object of type {type(result)}")
+        raise RuntimeError(
+            f"Model did not return a valid summary rating. Returned object of type {type(result)}"
+        )
     return result
 
 
