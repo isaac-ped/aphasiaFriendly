@@ -77,7 +77,9 @@ class Icon(BaseModel):
 
 
 class Metadata(BaseModel):
-    title: str
+    title: str = Field(
+        description="The original title of this article, before simplification"
+    )
     authors: list[str]
     date: str
     simplified_title: str = Field(
