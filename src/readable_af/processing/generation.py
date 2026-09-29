@@ -1,6 +1,3 @@
-import json
-from pathlib import Path
-
 from readable_af.errors import AFException
 from ..external import openai as oa
 from readable_af.model.summary import (
@@ -8,7 +5,6 @@ from readable_af.model.summary import (
     Summary,
 )
 from ..logger import logger
-from functools import cache
 
 MODEL = "gpt-6-sol"
 
@@ -73,8 +69,7 @@ def generate_abstract(messy_abstract: str) -> str:
 def summary_prompt(abstract: str) -> list[oa.Message]:
     return [
         oa.Message(
-            content=\
-"""
+            content="""
 You are an assistant that processes scientific articles into a few simple sentences that are understandable by someone that has difficulty reading. 
 You will be passed the abstract of a scientific article and asked to summarize it. 
 Your summary should produce 4-7 bullet points, each with one or two sentences. 
