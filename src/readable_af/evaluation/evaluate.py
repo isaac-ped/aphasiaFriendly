@@ -15,6 +15,7 @@ import sys
 from pathlib import Path
 from typing import Literal
 
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_anthropic import ChatAnthropic
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -23,7 +24,7 @@ from pydantic import BaseModel, Field, SecretStr, ValidationError
 from ..config import Config
 from ..output.comparison import ComparisonModel
 
-Provider = Literal["openai", "anthropic"]
+Provider = Literal["openai", "anthropic", "gemini"]
 
 OPENAI_MODEL = "gpt-5-mini-2025-08-07"
 ANTHROPIC_MODEL = "claude-sonnet-4-5-20250929"
@@ -50,7 +51,7 @@ class SummaryRating(BaseModel):
         le=10,
         description="Does the summary introduce hallucinations or contradict the original? "
         "Are there any statements that misrepresent the original abstract? "
-        "An issue of glossing over details does not count as an accuracy problem. " 
+        "An issue of glossing over details does not count as an accuracy problem. "
         "The only thing that counts against accuracy is the inclusion of a false statement in the summary.",
     )
     coverage: int = Field(
@@ -100,7 +101,7 @@ def load_summary_comparison(file_path: Path) -> ComparisonModel:
         raise ValueError(f"Invalid article JSON in {file_path}: {error}") from error
 
 
-def create_model(provider: Provider) -> BaseChatModel:
+def create_model(provider: Provider, model_name: str | None = None) -> BaseChatModel:
     config = Config.get()
     if provider == "anthropic":
         if not config.anthropic_api_key:
@@ -108,34 +109,56 @@ def create_model(provider: Provider) -> BaseChatModel:
                 "ANTHROPIC_API_KEY is required for the Anthropic provider."
             )
         return ChatAnthropic(
-            model_name=ANTHROPIC_MODEL,
+            model_name=model_name or ANTHROPIC_MODEL,
             api_key=SecretStr(config.anthropic_api_key),
             timeout=None,
             stop=None,
+            thinking={"type": "adaptive"},
         )
-    return ChatOpenAI(
-        model=OPENAI_MODEL,
-        api_key=SecretStr(config.openai_api_key),
-    )
+    elif provider == "gemini":
+        if not config.gemini_api_key:
+            raise RuntimeError("GEMINI_API_KEY is required for the gemini provider.")
+        return ChatGoogleGenerativeAI(
+            model=model_name or "gemini-3.6-flash",
+            google_api_key=SecretStr(config.gemini_api_key),
+        )
+    elif provider == "openai":
+        return ChatOpenAI(
+            model=model_name or OPENAI_MODEL,
+            api_key=SecretStr(config.openai_api_key),
+        )
+    else:
+        raise RuntimeError(f"Invalid provider {provider}")
 
 
 def evaluate(
     inputs: ComparisonModel,
     provider: Provider = "openai",
+    model_name: str | None = None,
+    retries=5,
 ) -> SummaryRating:
     """Rate a generated title and abstract against the source article metadata."""
     user_message = inputs.model_dump_json()
 
-    model = create_model(provider)
+    model = create_model(provider, model_name=model_name)
     structured_model = model.with_structured_output(
         SummaryRating,
         method="json_schema",
     )
-    result = structured_model.invoke(
-        [SystemMessage(content=SYSTEM_PROMPT), HumanMessage(content=user_message)]
-    )
+    result = None
+    for i in range(retries):
+        if i > 0:
+            print(f"Model invocation failed. Performing attempt number {i + 1}")
+        result = structured_model.invoke(
+            [SystemMessage(content=SYSTEM_PROMPT), HumanMessage(content=user_message)]
+        )
+        if result is not None:
+            break
     if not isinstance(result, SummaryRating):
-        raise RuntimeError("Model did not return a valid summary rating.")
+        print(result)
+        raise RuntimeError(
+            f"Model did not return a valid summary rating. Returned object of type {type(result)}"
+        )
     return result
 
 
@@ -171,7 +194,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--provider",
-        choices=("openai", "anthropic"),
+        choices=("openai", "anthropic", "gemini"),
         default="openai",
         help="Model provider to use (default: openai)",
     )

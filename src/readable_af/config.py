@@ -6,7 +6,8 @@ from pathlib import Path
 from typing import ClassVar
 
 _HERE = Path(__file__).parent
-_DEFAULT_ENV_FILE = Path(".env")
+_REPO_ROOT = _HERE.parent.parent
+_DEFAULT_ENV_FILE = _REPO_ROOT / ".env"
 
 
 def _read_dotenv(env_var: str, file_path: Path = _DEFAULT_ENV_FILE) -> str:
@@ -108,6 +109,9 @@ class Config:
     )
     anthropic_api_key: str | None = dataclasses.field(
         default_factory=EnvVar("ANTHROPIC_API_KEY").get
+    )
+    gemini_api_key: str | None = dataclasses.field(
+        default_factory=EnvVar("GEMINI_API_KEY").get
     )
     nounproject_api_key: str = dataclasses.field(
         default_factory=RequiredEnvVar("NOUNPROJECT_API_KEY").get
