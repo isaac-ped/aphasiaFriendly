@@ -87,7 +87,7 @@ The sentences that you produce should have a Flesch-Kincaid grade level score of
 They should be readable by someone in elementary or middle school.
 
 In each bullet, the most important words or short phrases should be put in bold with the html <b> </b> tag.
-A reader should be able to read only those words in bold and still know get the gist of what the article was saying.
+A reader should be able to read only those words in bold and still get the gist of what the article was saying.
 
 After each bullet, you may also include icons to help with understanding.
 You will find these icons by using the provided tool that searches NounProject, which is a repository of iconographic images.
@@ -95,7 +95,6 @@ You will find by searching for a single keyword or phrase. You can verify that t
 by examining the other keywords that are present in the search results for that icon.
 It is better to include no icon than to include a confusing icon, but when trying to find an icon it is expected that you will have to search multiple times.
 DO NOT SEARCH MORE THAN 15 TIMES WHEN PROCESSING A SINGLE ABSTRACT.
-You should choose between the icons that are returned in the search based on which was has the most appropriate tags.
 
 For each icon, return one search keyword, the ID of the selected NounProject icon, and the exact tags returned by the search tool.
 Do not return a list called "keywords". Each icon must have a singular "keyword" field.
