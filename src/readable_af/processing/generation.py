@@ -83,7 +83,7 @@ The structure of the sentence matters as much as the complexity of the words wit
 Do not make the phrasing of the summary more awkward just to avoid using a complex term or reduce characters.
 For example, do not use a phrase like "they measured speech goodness" and instead use more words to say "They tracked if people made mistakes when talking"
 
-The sentences that you produce should have a flesch-kinkaid score of approximately 75.
+The sentences that you produce should have a Flesch-Kincaid grade level score of approximately 5.
 They should be readable by someone in elementary or middle school.
 
 In each bullet, the most important words or short phrases should be put in bold with the html <b> </b> tag.
