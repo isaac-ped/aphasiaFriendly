@@ -79,6 +79,7 @@ def completion_structured(
         response = client().responses.parse(
             model=model,
             input=json.dumps(message_dicts),
+            reasoning={"effort": "medium"},
             text_format=response_model,
             tools=[nounproject.SEARCH_TOOL],
         )

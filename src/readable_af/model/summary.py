@@ -77,7 +77,9 @@ class Icon(BaseModel):
 
 
 class Metadata(BaseModel):
-    title: str
+    title: str = Field(
+        description="The original title of this article, before simplification"
+    )
     authors: list[str]
     date: str
     simplified_title: str = Field(
@@ -98,7 +100,7 @@ class Bullet(BaseModel):
     )
     icons: list[Icon] = Field(
         default_factory=list,
-        description="0-3 icon keywords for this bullet point, ordered from most to least important. Each Icon should have only the keyword field populated.",
+        description="0-3 icons that should accompany this bullet point.",
     )
 
     def calculate_checksum(self) -> int:
@@ -118,7 +120,7 @@ class Bullet(BaseModel):
 
 
 class Summary(BaseModel):
-    metadata: Metadata | None = None
+    metadata: Metadata
     rating: str = "N/A"
     bullets: list[Bullet] = Field(default_factory=list)
 
