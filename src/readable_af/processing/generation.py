@@ -71,7 +71,6 @@ def generate_abstract(messy_abstract: str) -> str:
 
 
 def summary_prompt(abstract: str) -> list[oa.Message]:
-    sample_input = load_sample()
     return [
         oa.Message(
             content=\
