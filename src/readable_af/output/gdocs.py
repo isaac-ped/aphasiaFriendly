@@ -77,8 +77,11 @@ def create_folder(service, name):
 
 
 class GoogleDocGenerator:
-    @staticmethod
-    def generate(summary: Summary, ctx: Ctx) -> None:
+
+    EXTENSION=None
+    
+    @classmethod
+    def generate(cls, summary: Summary, ctx: Ctx) -> None:
         assert ctx.credentials is not None
         assert summary.metadata is not None, (
             "Summary metadata must be populated before generating output"
@@ -105,6 +108,11 @@ class GoogleDocGenerator:
         )
         ctx.output_link = f"https://docs.google.com/document/d/{file.get('id')}/edit"
         logger.info(f"Generated google doc: {ctx.output_link}")
+
+    @classmethod
+    def generate_text(cls, summary: Summary, ctx: Ctx) -> str:
+        raise NotImplementedError("Cannot generate text-only format for google docs")
+
 
     # drive.files().create({}).execute()
     # drive.files().create({

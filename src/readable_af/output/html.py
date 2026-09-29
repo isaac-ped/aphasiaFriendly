@@ -2,12 +2,16 @@ from base64 import b64encode
 import re
 from ..model.request import Ctx
 
-from readable_af.model.summary import Summary
+from ..model.summary import Summary
+from .generator import Generator
 
 
-class HtmlGenerator:
-    @staticmethod
-    def generate_text(summary: Summary) -> str:
+class HtmlGenerator(Generator):
+
+    EXTENSION = "html"
+
+    @classmethod
+    def generate_text(cls, summary: Summary, ctx: Ctx) -> str:
         assert summary.metadata is not None, (
             "Summary metadata must be populated before generating output"
         )
@@ -67,11 +71,3 @@ class HtmlGenerator:
             text += "</div>\n"
         text += "</body></html>"
         return text
-
-    @staticmethod
-    def generate(summary: Summary, ctx: Ctx) -> None:
-        out = ctx.output_file
-        assert out is not None
-        out.parent.mkdir(exist_ok=True, parents=True)
-        with out.open("w") as f:
-            f.write(HtmlGenerator.generate_text(summary))

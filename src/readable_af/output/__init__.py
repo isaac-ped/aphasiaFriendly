@@ -1,15 +1,6 @@
-from typing import Protocol
+from . import pptx, yaml, html, gdocs, comparison, generator
 
-from ..model.request import Ctx
-
-
-class Generator(Protocol):
-    @staticmethod
-    def generate(summary, ctx: Ctx): ...
-
-
-def get_generator(format: str) -> Generator:
-    from . import pptx, yaml, html, gdocs, comparison
+def get_generator(format: str) -> generator.Generator:
 
     if format == "pptx":
         return pptx.PPTXGenerator()

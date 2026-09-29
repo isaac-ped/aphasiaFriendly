@@ -31,11 +31,9 @@ class ComparisonModel(BaseModel):
 
 
 class ComparisonGenerator:
+
     @staticmethod
-    def generate(summary: Summary, ctx: Ctx) -> None:
-        out = ctx.output_file
-        assert out is not None
-        out.parent.mkdir(exist_ok=True, parents=True)
+    def generate_text(summary: Summary, ctx: Ctx) -> str:
 
         assert ctx.input.title is not None
         assert ctx.input.abstract is not None
@@ -58,6 +56,16 @@ class ComparisonGenerator:
                 for bullet in summary.bullets
             ],
         )
+        return comparison.model_dump_json(indent=2)
+
+
+
+    @staticmethod
+    def generate(summary: Summary, ctx: Ctx) -> None:
+        out = ctx.output_file
+        assert out is not None
+        out.parent.mkdir(exist_ok=True, parents=True)
+
 
         with out.with_suffix(".json").open("w") as f:
             f.write(comparison.model_dump_json(indent=2))
