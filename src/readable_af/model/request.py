@@ -29,3 +29,4 @@ class Ctx(BaseModel):
     output_dir: Path | None = None
     output_file: Path | None = None
     output_link: str | None = None
+    output_text: str | None = None

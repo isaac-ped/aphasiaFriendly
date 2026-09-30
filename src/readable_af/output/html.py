@@ -1,4 +1,5 @@
 from base64 import b64encode
+import html
 import re
 from ..model.request import Ctx
 
@@ -48,22 +49,23 @@ class HtmlGenerator:
         </head>
         <body>
         """
-        text += (
-            f"<h1 style='text-align:center'>{summary.metadata.simplified_title}</h1>\n"
+        text += f"<h1 style='text-align:center'>{html.escape(summary.metadata.simplified_title)}</h1>\n"
+        authors = ", ".join(
+            [html.escape(author) for author in summary.metadata.authors]
         )
-        authors = ", ".join(summary.metadata.authors)
         # Remove any numeric characters from the authors list
         authors = re.sub(r"\d+", "", authors)
         authors = re.sub(r"\s+", " ", authors)
         text += f"<div class='authors'>Authors: {authors}</div><br/>\n"
         text += "<br/>" * 3
-        text += f"<h2 class='subtitle'> An accessible version of: </h2><h2> {summary.metadata.title}  </h2>\n"
+        text += f"<h2 class='subtitle'> An accessible version of: </h2><h2> {html.escape(summary.metadata.title)}  </h2>\n"
         text += "<hr class='pb' />"
         for bullet in summary.bullets:
-            text += f"<h3 class='bullet' style='text-align:center'>{bullet.text.strip()}</h3>\n"
+            bullet_text = bullet.text.strip()
+            text += f"<h3 class='bullet' style='text-align:center'>{bullet_text}</h3>\n"
             text += "<div class='icons' style='text-align:center'>\n"
             for icon in bullet.icons[:2]:
-                text += f"<img alt='{icon.keyword}' width=75  height=75 src='data:image/png;base64,{b64encode(icon.icon).decode('utf-8')}'/>"
+                text += f"<img alt='{html.escape(icon.keyword)}' width=75  height=75 src='data:image/png;base64,{b64encode(icon.icon).decode('utf-8')}'/>"
             text += "</div>\n"
         text += "</body></html>"
         return text
@@ -73,5 +75,6 @@ class HtmlGenerator:
         out = ctx.output_file
         assert out is not None
         out.parent.mkdir(exist_ok=True, parents=True)
+        ctx.output_text = HtmlGenerator.generate_text(summary)
         with out.open("w") as f:
-            f.write(HtmlGenerator.generate_text(summary))
+            f.write(ctx.output_text)
