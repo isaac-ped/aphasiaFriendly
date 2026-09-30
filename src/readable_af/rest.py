@@ -78,22 +78,29 @@ def auth():
 @app.route("/summarize", methods=["GET"])
 @limiter.limit("10 per 1 minute", on_breach=rate_limited)  # <------------ New line
 def summarize():
-    if not gdocs.get_credentials():
-        flash("Please authenticate with Google before continuing.")
-        return flask.redirect(flask.url_for("auth"))
+    format = request.args.get("format") 
+    if format != "html":
+        if not gdocs.get_credentials():
+            flash("Please authenticate with Google before continuing.")
+            return flask.redirect(flask.url_for("auth"))
     return render_template(
         "summarize.html.j2",
         sitekey=Config.get().recapcha_site_key,
+        format=format,
     )
 
 
 @app.route("/api/summarize", methods=["GET", "POST"])
 @limiter.limit("10 per 1 minute")  # <------------ New line
 def summarize_file():
-    credentials = gdocs.get_credentials()
-    if not credentials:
-        flash("Sorry, your authentication with google has expired. Please log in again")
-        return flask.redirect(flask.url_for("authorize"))
+    format = request.args.get("format", "gdoc")
+    if format == "gdoc":
+        credentials = gdocs.get_credentials()
+        if not credentials:
+            flash("Sorry, your authentication with google has expired. Please log in again")
+            return flask.redirect(flask.url_for("authorize"))
+    else:
+        credentials = None
 
     if "g-recaptcha-response" not in request.form:
         logger.warning("No recaptcha response")
@@ -110,17 +117,20 @@ def summarize_file():
     title = request.form["title"]
     authors = request.form["authors"]
 
+    ctx = Ctx()
+    ctx.credentials = credentials
+    ctx.input.abstract = abstract
+    ctx.input.authors = authors
+    ctx.input.title = title
+    ctx.output_format = format
+
+
     try:
-        ctx = Ctx()
-        ctx.credentials = credentials
-        ctx.input.abstract = abstract
-        ctx.input.authors = authors
-        ctx.input.title = title
-        ctx.output_format = "gdoc"
         with tempfile.TemporaryDirectory() as tmp_out:
             ctx.output_file = Path(tmp_out) / "summary"
             api.summarize(ctx)
-            assert ctx.output_link is not None
+            if format == "gdoc":
+                assert ctx.output_link is not None
     except Exception as e:
         logger.exception(f"Error summarizing: {e}")
         return render_template(
@@ -128,11 +138,14 @@ def summarize_file():
             error=str(e),
         )
 
-    return render_template(
-        "result.html.j2",
-        error=None,
-        output_link=ctx.output_link,
-    )
+    if format == "gdoc":
+        return render_template(
+            "result.html.j2",
+            error=None,
+            output_link=ctx.output_link,
+        )
+    else:
+        return ctx.output_text
 
 
 def is_human(captcha_response):

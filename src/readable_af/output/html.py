@@ -73,5 +73,6 @@ class HtmlGenerator:
         out = ctx.output_file
         assert out is not None
         out.parent.mkdir(exist_ok=True, parents=True)
+        ctx.output_text = HtmlGenerator.generate_text(summary)
         with out.open("w") as f:
-            f.write(HtmlGenerator.generate_text(summary))
+            f.write(ctx.output_text)
