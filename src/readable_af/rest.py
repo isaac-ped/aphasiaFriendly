@@ -95,7 +95,7 @@ def summarize():
 def summarize_file():
     format = request.args.get("format", "gdoc")
     if format not in {"gdoc", "html"}:
-         return "Unsupported format", 400
+        return "Unsupported format", 400
     if format == "gdoc":
         credentials = gdocs.get_credentials()
         if not credentials:
