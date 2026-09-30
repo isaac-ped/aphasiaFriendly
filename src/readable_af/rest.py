@@ -78,7 +78,7 @@ def auth():
 @app.route("/summarize", methods=["GET"])
 @limiter.limit("10 per 1 minute", on_breach=rate_limited)  # <------------ New line
 def summarize():
-    format = request.args.get("format") 
+    format = request.args.get("format")
     if format != "html":
         if not gdocs.get_credentials():
             flash("Please authenticate with Google before continuing.")
@@ -97,7 +97,9 @@ def summarize_file():
     if format == "gdoc":
         credentials = gdocs.get_credentials()
         if not credentials:
-            flash("Sorry, your authentication with google has expired. Please log in again")
+            flash(
+                "Sorry, your authentication with google has expired. Please log in again"
+            )
             return flask.redirect(flask.url_for("authorize"))
     else:
         credentials = None
@@ -124,7 +126,6 @@ def summarize_file():
     ctx.input.title = title
     ctx.output_format = format
 
-
     try:
         with tempfile.TemporaryDirectory() as tmp_out:
             ctx.output_file = Path(tmp_out) / "summary"
@@ -145,6 +146,9 @@ def summarize_file():
             output_link=ctx.output_link,
         )
     else:
+        if ctx.output_text is None:
+            logger.error(f"Output text not generated for format {format}")
+            return "Sorry, an error has occurred. Please email deborah.levy@princeton.edu to report this error."
         return ctx.output_text
 
 
