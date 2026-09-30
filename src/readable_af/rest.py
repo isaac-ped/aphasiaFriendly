@@ -78,7 +78,7 @@ def auth():
 @app.route("/summarize", methods=["GET"])
 @limiter.limit("10 per 1 minute", on_breach=rate_limited)  # <------------ New line
 def summarize():
-    format = request.args.get("format")
+    format = request.args.get("format", "gdoc")
     if format != "html":
         if not gdocs.get_credentials():
             flash("Please authenticate with Google before continuing.")
